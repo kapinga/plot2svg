@@ -2449,7 +2449,11 @@ end
 function control2svg(fid,id,ax,~,paperpos)
 global PLOT2SVG_globals
 set(ax,'Units','pixels');
-pos=get(ax,'Position');
+if verLessThan('matlab', '8.4.0')
+    pos=get(ax,'Position');
+else
+    pos=ax.OuterPosition;
+end
 pict=getframe(id,pos);
 if isempty(pict.colormap)
     pict.colormap=colormap;
