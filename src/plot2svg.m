@@ -2587,7 +2587,7 @@ if strcmp(get(ax,'XTickLabelMode'),'auto') && strcmp(get(ax,'XScale'),'linear')
     if (~isempty(indexnz) && ~isempty(numlabels))
         ratio=numlabels(indexnz)./labelpos(indexnz);
         if round(log10(ratio(1))) ~= 0 && ratio(1) ~= 0
-            exptext = sprintf('&#215; 10<tspan font-size="%0.1fpt" dy="%0.1fpt">%g</tspan>', 0.7*fontsize, -0.7*fontsize,-log10(ratio(1)));
+            exptext = sprintf('&#215; 10<tspan style="font-size:65%%;baseline-shift:super">%g</tspan>', -log10(ratio(1)));
             label2svg(fid,group,axpos,ax,(axpos(1)+axpos(3))*paperpos(3),(1-axpos(2))*paperpos(4)+3*fontsize,exptext,'right',0,'top',1,paperpos,font_color,0)           
         end
     end
@@ -2615,7 +2615,7 @@ if strcmp(get(ax,'YTickLabelMode'),'auto') && strcmp(get(ax,'YScale'),'linear')
     if (~isempty(indexnz) && ~isempty(numlabels))
         ratio = numlabels(indexnz)./labelpos(indexnz);
         if round(log10(ratio(1))) ~= 0 && ratio(1) ~= 0
-            exptext = sprintf('&#215; 10<tspan font-size="%0.1fpt" dy="%0.1fpt">%g</tspan>',0.7*fontsize,-0.7*fontsize,-log10(ratio(1)));
+            exptext = sprintf('&#215; 10<tspan style="font-size:65%%;baseline-shift:super">%g</tspan>', -log10(ratio(1)));
             label2svg(fid,group,axpos,ax,axpos(1)*paperpos(3),(1-(axpos(2)+axpos(4)))*paperpos(4)-0.5*fontsize,exptext,'left',0,'bottom',1,paperpos,font_color,0)           
         end
     end
@@ -2643,7 +2643,7 @@ if strcmp(get(ax,'ZTickLabelMode'),'auto') && strcmp(get(ax,'ZScale'),'linear')
     if (~isempty(indexnz) && ~isempty(numlabels))
         ratio = numlabels(indexnz)./labelpos(indexnz);
         if round(log10(ratio(1))) ~= 0 && ratio(1) ~= 0
-            exptext = sprintf('&#215; 10<tspan font-size="%0.1fpt" dy="%0.1fpt">%g</tspan>',0.7*fontsize,-0.7*fontsize,-log10(ratio(1)));
+            exptext = sprintf('&#215; 10<tspan style="font-size:65%%;baseline-shift:super">%g</tspan>', -log10(ratio(1)));
             label2svg(fid,group,axpos,ax,axpos(1)*paperpos(3),(1-(axpos(2)+axpos(4)))*paperpos(4)-0.5*fontsize,exptext,'left',0,'top',1,paperpos,font_color,0)           
         end
     end
