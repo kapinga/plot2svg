@@ -2575,15 +2575,21 @@ if strcmp(get(ax,'XTickLabelMode'),'auto') && strcmp(get(ax,'XScale'),'linear')
             numlabels(ix) = str2num(axlabelx{ix}); %#ok<ST2NM>
         end
     else
-        numlabels = get(ax,'XTickLabel');
-        if ~isempty(numlabels)
-          numlabels = str2double(numlabels);
+        axlabelx = get(ax, 'XTickLabel');
+        if iscellstr(axlabelx)
+            numlabels = str2double(axlabelx);
+        else
+            numlabels = str2num(axlabelx); %#ok<ST2NM>
+        end
+        if (numel(numlabels) == 1) && isnan(numlabels)
+            numlabels = [];
         end
     end
     labelpos = axxtick;%get(ax,'XTick');
     numlabels = numlabels(:);
     labelpos = labelpos(:);
     indexnz = find(labelpos ~= 0);
+    indexnz(indexnz > numel(numlabels)) = [];
     if (~isempty(indexnz) && ~isempty(numlabels))
         ratio=numlabels(indexnz)./labelpos(indexnz);
         if round(log10(ratio(1))) ~= 0 && ratio(1) ~= 0
@@ -2603,9 +2609,14 @@ if strcmp(get(ax,'YTickLabelMode'),'auto') && strcmp(get(ax,'YScale'),'linear')
             numlabels(ix) = str2num(axlabely{ix}); %#ok<ST2NM>
         end        
     else
-        numlabels = get(ax,'YTickLabel');
-        if ~isempty(numlabels)
-          numlabels = str2double(numlabels);
+        axlabely = get(ax, 'YTickLabel');
+        if iscellstr(axlabely)
+            numlabels = str2double(axlabely);
+        else
+            numlabels = str2num(axlabely); %#ok<ST2NM>
+        end
+        if (numel(numlabels) == 1) && isnan(numlabels)
+            numlabels = [];
         end
     end
     labelpos = axytick;%get(ax,'YTick');
@@ -2631,9 +2642,14 @@ if strcmp(get(ax,'ZTickLabelMode'),'auto') && strcmp(get(ax,'ZScale'),'linear')
             numlabels(ix) = str2num(axlabelz{ix}); %#ok<ST2NM>
         end
     else
-        numlabels = get(ax,'ZTickLabel');
-        if ~isempty(numlabels)
-          numlabels = str2double(numlabels); 
+        axlabelz = get(ax, 'ZTickLabel');
+        if iscellstr(axlabelz)
+            numlabels = str2double(axlabelz);
+        else
+            numlabels = str2num(axlabelz); %#ok<ST2NM>
+        end
+        if (numel(numlabels) == 1) && isnan(numlabels)
+            numlabels = [];
         end
     end
     labelpos = axztick;%get(ax,'ZTick');
