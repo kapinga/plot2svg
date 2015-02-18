@@ -1483,6 +1483,7 @@ for i=length(axchild):-1:1
         end
         line2svg(fid,groupax,axpos,x,y,scolorname,linestyle,linewidth)
         % put the markers into a subgroup of the lines
+        if ~strcmp(marker, 'none') % Remove the excess <g></g> if there's no markers
         fprintf(fid,'<g>\n');
         switch marker
             case 'none';
@@ -1507,6 +1508,7 @@ for i=length(axchild):-1:1
         end
         % close the marker group
         fprintf(fid,'</g>\n');
+        end
         animation2svg(fid, axchild(i));
         % close the line group
         fprintf(fid,'</g>\n');
