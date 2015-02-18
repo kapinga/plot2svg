@@ -254,6 +254,10 @@ for j=length(ax):-1:1
         group=group+1;
         groups=[groups group];
         group=axes2svg(fid,id,ax(j),group,paperpos);
+    elseif strcmp(currenttype, 'legend')
+        group = group+1;
+        groups = [groups group];
+        group = legend2svg(fid, id, ax(j), group, paperpos);
     elseif strcmp(currenttype,'uicontrol')
         if strcmp(get(ax(j),'Visible'),'on')
             control2svg(fid,id,ax(j),group,paperpos);
@@ -760,10 +764,15 @@ for i = 1:length(xg_line_start)
     line2svg(fid, grouplabel, axpos, [xg_line_start(i) xg_line_end(i)],[yg_line_start(i) yg_line_end(i)], scolorname, minor_gridlinestyle, linewidth)
 end
 
+
+function group=legend2svg(fid, id, ax, group, paperpos)
+    warning('Plot2SVG:LegendUnsupported', 'The new legend datatype is currenty unsupported and will not be included in the SVG!');
+    %group = axes2svg(fid, id, ax, group, paperpos);
+    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SUBFUNCTIONS %%%%%
 % Create axis frame and insert all children of this axis frame
 function group=axes2svg(fid,id,ax,group,paperpos)
-global colorname
+% global colorname
 global PLOT2SVG_globals
 originalAxesUnits=get(ax,'Units');
 set(ax,'Units','normalized');
