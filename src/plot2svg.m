@@ -2038,7 +2038,7 @@ for i=length(axchild):-1:1
         end
         if length(pointx) > 1
             if xor(strcmp(get(ax,'XDir'),'reverse'), pointx(1) > pointx(2))
-                if ndims(pointc) < 3
+                if ismatrix(pointc)
                     pointc=fliplr(pointc);
                 elseif ndims(pointc) == 3
                     for j = 1:size(pointc,3)
@@ -2051,7 +2051,7 @@ for i=length(axchild):-1:1
         end
         if length(pointy) > 1
             if xor(strcmp(get(ax,'YDir'),'reverse'), pointy(1) > pointy(2))
-                if ndims(pointc) < 3
+                if ismatrix(pointc)
                     pointc=flipud(pointc);
                 elseif ndims(pointc) == 3
                     for j = 1:size(pointc,3)
@@ -2089,7 +2089,7 @@ for i=length(axchild):-1:1
                 error('Cannot write image file. Make sure that no image is opened in an other program.')    
             end
         end
-        if ndims(pointc) < 3
+        if ismatrix(pointc)
             pointc = flipud(pointc);
         elseif ndims(pointc) == 3
             for j = 1:size(pointc,3)
