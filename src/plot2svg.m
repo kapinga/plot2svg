@@ -116,6 +116,8 @@ function varargout = plot2svg(param1,id,pixelfiletype)
 %  18-02-2015 - Added MException catching to try/catch blocks and the
 %               assocciated warning messages
 
+% Supress warnings about variables growing on every iteration
+%#ok<*AGROW>
 global PLOT2SVG_globals
 global colorname
 progversion='16-Feb-2013';
