@@ -139,7 +139,7 @@ if exist('OCTAVE_VERSION','builtin')
     PLOT2SVG_globals.octave = true;
     disp('   Info: PLOT2SVG runs in Octave mode.')
 else
-    if str2num(matversion(1))<6 % Check for matlab version and print warning if matlab version lower than version 6.0 (R.12)
+    if str2double(matversion(1))<6 % Check for matlab version and print warning if matlab version lower than version 6.0 (R.12)
         disp('   Warning: Future versions may no more support older versions than MATLAB R12.')
     end
 end
@@ -469,7 +469,7 @@ if PLOT2SVG_globals.checkUserData && isstruct(get(id,'UserData'))
                     % strings.
                     resultStrings{length(resultStrings) + 1} = filter(i).Subfilter.Result;
                     % The strmatch below is a very inefficient search (Matlab limitation)
-                    if ~isempty(strmatch(filter(i).Subfilter.Result, predefinedSources))
+                    if ~any(strcmp(filter(i).Subfilter.Result, predefinedSources))
                         error('Usage of a predefined filter source as filter result string is not allowed.');
                     end
                     switch (filter(i).Subfilter.Type)
@@ -652,7 +652,7 @@ function printAttributeIn(fid, name, svgstruct, svgfield, default, resultStrings
 if isfield(svgstruct, svgfield)
     if ischar(svgstruct.(svgfield))
         % The strmatch below is a very inefficient search (Matlab limitation)
-        if isempty(strmatch(svgstruct.(svgfield), resultStrings))
+        if ~any(strcmp(svgstruct.(svgfield), resultStrings))
             error(['The source string ''' svgstruct.(svgfield) ''' was never a result string of a previous filter. Check for correct spelling.']);    
         else
             fprintf(fid,' %s="%s"', name, svgstruct.(svgfield));
@@ -686,7 +686,7 @@ end
 function printAttributeList(fid, name, svgstruct, svgfield, list, default)
 if isfield(svgstruct, svgfield)
     if ischar(svgstruct.(svgfield))
-        if isempty(strmatch(svgstruct.(svgfield), list))
+        if ~any(strcmp(svgstruct.(svgfield), list))
             listString = strcat(list, ''' | ''');
             listString = [listString{:}];
             error(['Illegal string identifier ''' svgstruct.(svgfield) '''. Must be one out of the list: ''' listString(1:end-4) '.']);
@@ -2348,7 +2348,7 @@ end
 function line2svg(fid, ~, ~, x, y, scolorname, style, width)
 if ~strcmp(style,'none')
     pattern = lineStyle2svg(style, width);
-    if (isnan(x) == zeros(size(x)) & isnan(y) == zeros(size(y)))
+    if ~any(isnan(x) | isnan(y))
         for j = 1:20000:length(x)
             xx = x(j:min(length(x), j + 19999));
             yy = y(j:min(length(y), j + 19999));
@@ -2639,7 +2639,7 @@ switch lower(align)
     otherwise,anchor = 'start';
 end
 if iscellstr(tex)
-    tex = strvcat(tex);
+    tex = char(tex);
 elseif ~ ischar(tex)
     error('Invalid character type');
 end    
