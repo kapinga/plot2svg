@@ -353,7 +353,7 @@ if PLOT2SVG_globals.checkUserData && isstruct(get(id,'UserData'))
             animation = struct_data.svg.Animation;
             for i = 1:length(animation)
                 if ~isfield(animation(i).SubAnimation, 'Type')
-                    error(['Missing field ''Type'' for animation.']);
+                    error('Missing field ''Type'' for animation.');
                 end
                 switch animation(i).SubAnimation.Type
                     case 'Opacity', type = 'opacity'; animationType = 0;
@@ -456,7 +456,7 @@ if PLOT2SVG_globals.checkUserData && isstruct(get(id,'UserData'))
                 if isfield(filter(i).Subfilter, 'Type')
                     fprintf(fid,'  <%s', filter(i).Subfilter.Type);
                 else
-                    error(['Missing field ''Type'' for filter.'])
+                    error('Missing field ''Type'' for filter.')
                 end
                 try
                     if isfield(filter(i).Subfilter, 'Position')
@@ -2054,7 +2054,7 @@ for i=length(axchild):-1:1
                 if ndims(pointc) < 3
                     pointc=flipud(pointc);
                 elseif ndims(pointc) == 3
-                    for j = [1:size(pointc,3)]
+                    for j = 1:size(pointc,3)
                         pointc(:,:,j)=flipud(pointc(:,:,j));
                     end
                 else
@@ -3241,7 +3241,7 @@ end
 %    cmode = '';
 %end
 v = [x(:) y(:) z(:)];
-q = [1:m*n-m-1]';
+q = (1:m*n-m-1)';
 q(m:m:end) = [];
 fvc = reshape(c, [cm*cn cp]);
 fva = reshape(a, [am*an ap]);
