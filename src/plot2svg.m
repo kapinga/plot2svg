@@ -120,7 +120,7 @@ function varargout = plot2svg(param1,id,pixelfiletype)
 %#ok<*AGROW>
 global PLOT2SVG_globals
 global colorname
-progversion='16-Feb-2013';
+progversion='18-Feb-2015'; %#ok<NASGU>
 PLOT2SVG_globals.runningIdNumber = 0;
 PLOT2SVG_globals.octave = false;
 PLOT2SVG_globals.checkUserData = true;
@@ -133,7 +133,7 @@ end
 if nargout==1
     varargout={0};
 end
-disp(['   Matlab/Octave to SVG converter version ' progversion ', Juerg Schwizer (converter@bluewin.ch).'])
+% disp(['   Matlab/Octave to SVG converter version ' progversion ', Juerg Schwizer (converter@bluewin.ch).'])
 matversion=version;
 if exist('OCTAVE_VERSION','builtin')
     PLOT2SVG_globals.octave = true;
