@@ -2504,7 +2504,7 @@ if strcmp(get(ax,'XTickLabelMode'),'auto') && strcmp(get(ax,'XScale'),'linear')
         axlabelx = get(ax, 'XTickLabel');
         numlabels = zeros(length(axlabelx), 1);
         for ix = 1:length (axlabelx)
-            numlabels(ix) = str2num(axlabelx{ix});
+            numlabels(ix) = str2num(axlabelx{ix}); %#ok<ST2NM>
         end
     else
         numlabels = get(ax,'XTickLabel');
@@ -2532,7 +2532,7 @@ if strcmp(get(ax,'YTickLabelMode'),'auto') && strcmp(get(ax,'YScale'),'linear')
         axlabely = get(ax, 'YTickLabel');
         numlabels = zeros(length(axlabely), 1);
         for ix = 1:length(axlabely)
-            numlabels(ix) = str2num(axlabely{ix});
+            numlabels(ix) = str2num(axlabely{ix}); %#ok<ST2NM>
         end        
     else
         numlabels = get(ax,'YTickLabel');
@@ -2560,7 +2560,7 @@ if strcmp(get(ax,'ZTickLabelMode'),'auto') && strcmp(get(ax,'ZScale'),'linear')
         axlabelz = get (ax, 'ZTickLabel');
         numlabels = zeros(length(axlabelz), 1);
         for ix = 1:length(axlabelz)
-            numlabels(ix) = str2num(axlabelz{ix});
+            numlabels(ix) = str2num(axlabelz{ix}); %#ok<ST2NM>
         end
     else
         numlabels = get(ax,'ZTickLabel');
