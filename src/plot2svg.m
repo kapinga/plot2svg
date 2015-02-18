@@ -238,7 +238,9 @@ if (~ strcmp(figcolor, 'none'))
     % other graphic elements
     try % Octave does not have support for InvertHardcopy yet -- Jakob Malm
         if strcmp(get(id,'InvertHardcopy'),'on')
-            fprintf(fid,'  <rect x="0" y="0" width="%0.3f" height="%0.3f" fill="#ffffff" stroke="none" />\n',paperpos(3),paperpos(4));
+%             fprintf(fid,'  <rect x="0" y="0" width="%0.3f" height="%0.3f" fill="#ffffff" stroke="none" />\n',paperpos(3),paperpos(4));
+            % I don't like the white figure background, there's rarely a
+            % need for it
         else
             fprintf(fid,'  <rect x="0" y="0" width="%0.3f" height="%0.3f" fill="%s" stroke="none" />\n',paperpos(3),paperpos(4),figcolor);
         end
