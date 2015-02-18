@@ -2826,13 +2826,21 @@ end
 % Note: Obviously, Matlab is using font sizes that are rounded to decimal
 % pt sizes. This may cause problems for very small figures. But we have to
 % follow due to the background size.
-%fprintf('%s\n', tex);
-fprintf(fid,'  <g transform="translate(%0.3f,%0.3f)">\n', x - shift * sin(-angle/180*pi), y + shift * cos(-angle/180*pi));
-fprintf(fid,'    <g transform="rotate(%0.1f)">\n',-angle);
+% Build a transformation matrix here
+transMat = eye(3);
+rotMat = eye(3);
+angle = -angle/180*pi; % Convert angle from degrees to radians, and flip direction
+transMat(1,3) = x - shift * sin(angle);
+transMat(2,3) = y + shift * cos(angle);
+rotMat(1,1) =  cos(angle);
+rotMat(1,2) = -sin(angle);
+rotMat(2,1) =  sin(angle);
+rotMat(2,2) =  cos(angle);
+CTM = transMat*rotMat;
+fprintf(fid,'  <g transform="matrix(%0.3f,%0.3f,%0.3f,%0.3f,%0.3f,%0.3f)">\n', CTM(1,1), CTM(2,1), CTM(1,2), CTM(2,2), CTM(1,3), CTM(2,3));
 fprintf(fid,'      <text x="%0.3f" y="%0.3f" font-family="%s" text-anchor="%s" font-size="%0.0fpt"%s%s fill="%s" >', 0, 0, textfontname, anchor, textfontsize, fweight, fangle, font_color);
 fprintf(fid,'%s',tex);
 fprintf(fid,'</text>\n'); 
-fprintf(fid,'    </g>\n');
 fprintf(fid,'  </g>\n');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
