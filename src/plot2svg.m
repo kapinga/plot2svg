@@ -307,7 +307,7 @@ if PLOT2SVG_globals.checkUserData && isstruct(get(id,'UserData'))
                     clipz(clipz<=0) = NaN;
                     clipz=log10(clipz);
                 end
-                [x,y,z] = project(clipx,clipy,clipz,projection);
+                [x,y,~] = project(clipx,clipy,clipz,projection);
                 x = (x*axpos(3)+axpos(1))*paperpos(3);
                 y = (1-(y*axpos(4)+axpos(2)))*paperpos(4);
                 clippingIdString = createId;
@@ -402,7 +402,7 @@ if PLOT2SVG_globals.checkUserData && isstruct(get(id,'UserData'))
     if isfield(struct_data,'svg')
         boundingBox = boundingBoxElement;
         absolute = true;
-        offset = 0;
+%         offset = 0;
         if isfield(struct_data.svg,'BoundingBox')
             if isfield(struct_data.svg.BoundingBox, 'Type')
                 switch struct_data.svg.BoundingBox.Type
@@ -783,7 +783,7 @@ nomz = [0 0 0 0 1 1 1 1];
 x = (edges(1,:)*axpos(3)+axpos(1))*paperpos(3);
 y = (1-(edges(2,:)*axpos(4)+axpos(2)))*paperpos(4);    
 % Depth Sort of view box edges 
-[edge_z,edge_index]=sort(edges(3,:));
+[~,edge_index]=sort(edges(3,:));
 most_back_edge_index = edge_index(1);
 % Back faces are plot box faces that are behind the plot (as seen by the
 % view point)
@@ -894,7 +894,7 @@ if strcmp(get(ax,'Visible'),'on')
         label_distance = -2*abs(ticklength);
         tick_ratio = [1 1 1];
     end
-    linewidth = get(ax,'LineWidth');
+%     linewidth = get(ax,'LineWidth');
     axxindex=find((axxtick >= axlimori(1)) & (axxtick <= (axlimori(1)+axlimori(4))));
     axyindex=find((axytick >= axlimori(2)) & (axytick <= (axlimori(2)+axlimori(5))));
     axzindex=find((axztick >= axlimori(3)) & (axztick <= (axlimori(3)+axlimori(6))));
@@ -1084,8 +1084,8 @@ if strcmp(get(ax,'Visible'),'on')
     fprintf(fid,'    <g>\n');
     % Search axis for labeling
     if projection.xyplane
-        [x_axis_point_value, x_axis_point_index_top] = min(y);
-        [x_axis_point_value, x_axis_point_index_bottom] = max(y);
+        [~, x_axis_point_index_top] = min(y);
+        [~, x_axis_point_index_bottom] = max(y);
         if strcmp(get(ax,'Box'),'on')
             if strcmp(get(ax,'XAxisLocation'),'top')
                 x_axis_point_index = [x_axis_point_index_top x_axis_point_index_bottom];
@@ -1099,8 +1099,8 @@ if strcmp(get(ax,'Visible'),'on')
                 x_axis_point_index = x_axis_point_index_bottom;
             end
         end
-        [y_axis_point_value, y_axis_point_index_left] = min(x);
-        [y_axis_point_value, y_axis_point_index_right] = max(x);
+        [~, y_axis_point_index_left] = min(x);
+        [~, y_axis_point_index_right] = max(x);
         if strcmp(get(ax,'Box'),'on')
             if strcmp(get(ax,'YAxisLocation'),'right')
                 y_axis_point_index = [y_axis_point_index_right y_axis_point_index_left];
@@ -1114,11 +1114,11 @@ if strcmp(get(ax,'Visible'),'on')
                 y_axis_point_index = y_axis_point_index_left;
             end
         end
-        [z_axis_point_value, z_axis_point_index] = min(x);   
+        [~, z_axis_point_index] = min(x);   
     else
-        [x_axis_point_value, x_axis_point_index] = max(y);
-        [y_axis_value, y_axis_point_index] = max(y);
-        [z_axis_point_value, z_axis_point_index] = min(x);   
+        [~, x_axis_point_index] = max(y);
+        [~, y_axis_point_index] = max(y);
+        [~, z_axis_point_index] = min(x);   
     end
     % Draw grid
     for pindex = 1:size(front_faces)
@@ -1405,7 +1405,7 @@ for i=length(axchild):-1:1
             linez(linez<=0) = NaN;
             linez=log10(linez);
         end
-        [x,y,z] = project(linex,liney,linez,projection);
+        [x,y,~] = project(linex,liney,linez,projection);
         x = (x*axpos(3)+axpos(1))*paperpos(3);
         y = (1-(y*axpos(4)+axpos(2)))*paperpos(4);
         markerOverlap = 0;
@@ -1476,7 +1476,7 @@ for i=length(axchild):-1:1
             else
                 closed = false;
             end            
-            [x,y,z] = project(x,y,ones(1,c(2,index))*c(1,index),projection);
+            [x,y,~] = project(x,y,ones(1,c(2,index))*c(1,index),projection);
             x = (x*axpos(3)+axpos(1))*paperpos(3);
             y = (1-(y*axpos(4)+axpos(2)))*paperpos(4);
             pointc = c(1,index);
@@ -1557,7 +1557,7 @@ for i=length(axchild):-1:1
         faces = get(axchild(i),'Faces');
         face_index = 1:size(faces,1);
         if size(points,1)==3;
-            [z,face_index]=sort(sum(z(faces(:,:)),2));
+            [~,face_index]=sort(sum(z(faces(:,:)),2));
             faces=faces(face_index,:);
         end
         markerOverlap = 0;
@@ -1785,7 +1785,7 @@ for i=length(axchild):-1:1
         y = (1-(y*axpos(4)+axpos(2)))*paperpos(4);
         face_index = 1:size(faces,1);
         if size(points,1)==3;
-            [z,face_index]=sort(sum(z(faces(:,:)),2));
+            [~,face_index]=sort(sum(z(faces(:,:)),2));
             faces=faces(face_index,:);
         end
         markerOverlap = 0;
@@ -1906,7 +1906,7 @@ for i=length(axchild):-1:1
             scolorname = 'none';
         end
         pattern = lineStyle2svg(linestyle, linewidth);
-        [x,y,z] = project(posx,posy,posz,projection);
+        [x,y,~] = project(posx,posy,posz,projection);
         x = (x*axpos(3)+axpos(1))*paperpos(3);
         y = (1-(y*axpos(4)+axpos(2)))*paperpos(4);
         rect = [min(x) min(y) max(x)-min(x) max(y)-min(y)];
@@ -1966,7 +1966,7 @@ for i=length(axchild):-1:1
         extentx = [extent(1) extent(1)+extent(3)];
         extenty = [extent(2) extent(2)+extent(4)];
         extentz = [0 0];
-        [x,y,z] = project(extentx,extenty,extentz,projection);
+        [x,y,~] = project(extentx,extenty,extentz,projection);
         x = (x*axpos(3)+axpos(1))*paperpos(3);
         y = (1-(y*axpos(4)+axpos(2)))*paperpos(4);
         box = [min(x)-margin min(y)-margin max(x)-min(x)+2*margin max(y)-min(y)+2*margin];
@@ -2005,10 +2005,10 @@ for i=length(axchild):-1:1
             pointy = [pointy(1) pointy(end)];   
         end
         if (size(pointx, 1) > 1) && (size(pointy, 1) > 1)
-            [x,y,z] = project(pointx,zeros(size(pointx)),zeros(size(pointx)),projection);
+            [x,y,~] = project(pointx,zeros(size(pointx)),zeros(size(pointx)),projection);
         else
-            [x,y_dummy,z] = project(pointx,zeros(size(pointx)),zeros(size(pointx)),projection);
-            [x_dummy,y,z] = project(zeros(size(pointy)),pointy,zeros(size(pointy)),projection);
+            [x,~,~] = project(pointx,zeros(size(pointx)),zeros(size(pointx)),projection);
+            [~,y,~] = project(zeros(size(pointy)),pointy,zeros(size(pointy)),projection);
         end
         pointc=get(axchild(i),'CData');
         %pointcclass = class(pointc);  % Bugfix proposed by Tom
@@ -2074,7 +2074,7 @@ for i=length(axchild):-1:1
         if ndims(pointc) ~= 3
             pointc = max(min(round(double(pointc)),size(cmap,1)),1);
         end
-        CameraUpVector = get(ax,'CameraUpVector');
+%         CameraUpVector = get(ax,'CameraUpVector');
         filename = [PLOT2SVG_globals.basefilename sprintf('%03d',PLOT2SVG_globals.figurenumber) '.' PLOT2SVG_globals.pixelfiletype];
         PLOT2SVG_globals.figurenumber = PLOT2SVG_globals.figurenumber + 1;
         if isempty(PLOT2SVG_globals.basefilepath)
@@ -2205,7 +2205,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % create a patch (filled area)
-function patch2svg(fid,group,axpos,xtot,ytot,scolorname,style,width, edgecolorname, face_opacity, edge_opacity, closed)
+function patch2svg(fid,~,~,xtot,ytot,scolorname,style,width, edgecolorname, face_opacity, edge_opacity, closed)
 if closed
     type = 'polygon';
 else
@@ -2254,7 +2254,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % create a patch (filled area)
-function gouraud_patch2svg(fid,group,axpos,xtot,ytot,cdata,style,width, edgecolorname, face_opacity, edge_opacity,id)
+function gouraud_patch2svg(fid,~,~,xtot,ytot,cdata,style,width, edgecolorname, face_opacity, edge_opacity,id)
 global colorname
 pattern = lineStyle2svg(style, width);
 if strcmp(style, 'none')
@@ -2343,7 +2343,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % create a line segment
 % this algorthm was optimized for large segement counts
-function line2svg(fid, group, axpos, x, y, scolorname, style, width)
+function line2svg(fid, ~, ~, x, y, scolorname, style, width)
 if ~strcmp(style,'none')
     pattern = lineStyle2svg(style, width);
     if (isnan(x) == zeros(size(x)) & isnan(y) == zeros(size(y)))
@@ -2376,7 +2376,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % create a circle
-function circle2svg(fid,group,axpos,x,y,radius,markeredgecolorname,markerfacecolorname,width)
+function circle2svg(fid,~,~,x,y,radius,markeredgecolorname,markerfacecolorname,width)
 for j = 1:length(x)
     if ~(isnan(x(j)) || isnan(y(j)))
         if ~strcmp(markeredgecolorname,'none') || ~strcmp(markerfacecolorname,'none')
@@ -2386,7 +2386,7 @@ for j = 1:length(x)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function control2svg(fid,id,ax,group,paperpos)
+function control2svg(fid,id,ax,~,paperpos)
 global PLOT2SVG_globals
 set(ax,'Units','pixels');
 pos=get(ax,'Position');
@@ -2450,9 +2450,9 @@ if PLOT2SVG_globals.octave
         textpos = textpos + [mean(xlim) ylim(2)+diff(ylim)./axpos(4)*0.01 0];
     end
 end
-textfontsize = get(id,'FontSize');
+% textfontsize = get(id,'FontSize');
 fontsize = convertunit(get(id,'FontSize'),get(id,'FontUnits'),'points', axpos(4));   % convert fontsize to inches
-paperposOriginal = get(gcf,'Position');
+% paperposOriginal = get(gcf,'Position');
 font_color = searchcolor(id,get(id,'Color'));
 if strcmp(get(ax,'XScale'),'log')
     textpos(1) = log10(textpos(1));
@@ -2463,7 +2463,7 @@ end
 if strcmp(get(ax,'ZScale'),'log')
     textpos(3) = log10(textpos(3));
 end
-[x,y,z] = project(textpos(1), textpos(2), textpos(3), projection);
+[x,y,~] = project(textpos(1), textpos(2), textpos(3), projection);
 x = (x * axpos(3) + axpos(1)) * paperpos(3);
 y = (1 - (y * axpos(4) + axpos(2))) * paperpos(4);
 textvalign = get(id,'VerticalAlignment');
@@ -2584,7 +2584,7 @@ end
 % create a label in the figure
 % former versions of FrameMaker supported the commands FDY and FDX to shift the text
 % this commands were replaced by a shift parameter that is normed by the font size
-function label2svg(fid,group,axpos,id,x,y,tex,align,angle,valign,lines,paperpos,font_color,exponent)
+function label2svg(fid,~,axpos,id,x,y,tex,align,angle,valign,lines,paperpos,font_color,exponent)
 if isempty(tex)
     return;
 end
@@ -2782,7 +2782,7 @@ fprintf(fid,'  </g>\n');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % converts LATEX strings into SVG strings
-function returnvalue = latex2svg(StringText, font, size, style)
+function returnvalue = latex2svg(StringText, ~, size, ~)
 returnvalue = StringText;
 try
 if ~isempty(StringText)
@@ -2918,7 +2918,7 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function name=searchcolor(id,value)
+function name=searchcolor(~,value)
 if ischar(value)
     name = value;
 else
@@ -2965,7 +2965,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function strExt=getFileExtension( strFileName)
 % returns the file extension of a filename
-[path, name, strExt] = fileparts( strFileName);
+[~, ~, strExt] = fileparts( strFileName);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function StringText=convertString(StringText)
@@ -3227,12 +3227,12 @@ end
 if ~isempty(y) && ~isequal(size(y),size(z))
   y = repmat(y(:),1,size(z,2));
 end
-[m n]= size(z);
+[m, n]= size(z);
 if isempty(x)
-    [x y] = meshgrid(1:n, 1:m);
+    [x, y] = meshgrid(1:n, 1:m);
 end
-[cm cn cp] = size(c);
-[am an ap] = size(a);
+[cm, cn, cp] = size(c);
+[am, an, ap] = size(a);
 %if cm==(m-1) & cn==(n-1)
 %    cmode = 'f';
 %elseif cm==m & cn==n
