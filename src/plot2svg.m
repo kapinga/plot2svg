@@ -2357,33 +2357,38 @@ end
 % create a line segment
 % this algorthm was optimized for large segement counts
 function line2svg(fid, ~, ~, x, y, scolorname, style, width)
+SEG_SIZE = 5000;
 if ~strcmp(style,'none')
     pattern = lineStyle2svg(style, width);
-    if ~any(isnan(x) | isnan(y))
-        for j = 1:20000:length(x)
-            xx = x(j:min(length(x), j + 19999));
-            yy = y(j:min(length(y), j + 19999));
-            fprintf(fid,'      <polyline fill="none" stroke="%s" stroke-width="%0.1fpt" %s points="', scolorname, width, pattern);
-            fprintf(fid,'%0.3f,%0.3f ',[xx;yy]);
-            fprintf(fid,'"/>\n');
+    
+    skip_pts = reshape(find(isnan(x) | isnan(y)), [],1);
+    start_pts = [1; skip_pts+1];
+    end_pts = [skip_pts-1; numel(x)];
+    k = 1;
+    while k <= numel(start_pts)
+        if (end_pts(k) - start_pts(k)) > SEG_SIZE
+            tmp_sPts = zeros(numel(start_pts)+1,1);
+            tmp_ePts = zeros(numel(start_pts)+1,1);
+            tmp_sPts(1:k) = start_pts(1:k);
+            tmp_ePts(1:k-1) = end_pts(1:k-1);
+            tmp_ePts(k) = tmp_sPts(k)+SEG_SIZE-1;
+            tmp_sPts(k+1) = tmp_sPts(k)+SEG_SIZE-1;
+            tmp_ePts(k+1:end) = end_pts(k:end);
+            tmp_sPts(k+2:end) = start_pts(k+1:end);
+            start_pts = tmp_sPts;
+            end_pts = tmp_ePts;
         end
-    else
-        parts = find(isnan(x) + isnan(y));
-        if ~isempty(parts) && (parts(1) ~= 1)
-            parts=[0 parts];
-        end
-        if parts(length(parts)) ~= length(x)
-            parts = [parts length(x) + 1];
-        end
-        for j = 1:(length(parts) - 1)
-            xx = x((parts(j) + 1):(parts(j + 1) - 1));
-            yy = y((parts(j) + 1):(parts(j + 1) - 1));
-            if ~isempty(xx)
-                fprintf(fid,'      <polyline fill="none" stroke="%s" stroke-width="%0.1fpt" %s points="', scolorname, width, pattern);
-                fprintf(fid,'%0.3f,%0.3f ', [xx;yy]);
-                fprintf(fid,'"/>\n');
-            end
-        end
+        k = k+1;
+    end
+    for j=1:numel(start_pts)
+        xx=x(start_pts(j):end_pts(j));
+        yy=y(start_pts(j):end_pts(j));
+%         fprintf(fid,'      <polyline %s points="',atts);
+%         fprintf(fid,'%0.5f,%0.5f ',[xx;yy]);
+%         fprintf(fid,'"/>\n');
+        fprintf(fid,'      <polyline fill="none" stroke="%s" stroke-width="%0.1fpt" %s points="', scolorname, width, pattern);
+        fprintf(fid,'%0.3f,%0.3f ',[xx;yy]);
+        fprintf(fid,'"/>\n');
     end
 end
 
