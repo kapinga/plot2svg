@@ -812,6 +812,10 @@ groupax=group;
 axlimx=get(ax,'XLim');
 axlimy=get(ax,'YLim');
 axlimz=get(ax,'ZLim');
+[axinflimx, axinflimy, axinflimz] = AxesChildBounds(ax);
+axlimx(isinf(axlimx)) = axinflimx(isinf(axlimx));
+axlimy(isinf(axlimy)) = axinflimy(isinf(axlimy));
+axlimz(isinf(axlimz)) = axinflimz(isinf(axlimz));
 axlimxori=axlimx;
 axlimyori=axlimy;
 axlimzori=axlimz;
@@ -3131,6 +3135,10 @@ xi = get(ax,'XLim');
 yi = get(ax,'YLim');
 zi = get(ax,'ZLim');
 projection.aspect_scaling = get(ax,'DataAspectRatio');
+[xinfi, yinfi, zinfi] = AxesChildBounds(ax);
+xi(isinf(xi)) = xinfi(isinf(xi));
+yi(isinf(yi)) = yinfi(isinf(yi));
+zi(isinf(zi)) = zinfi(isinf(zi));
 if strcmp(get(ax,'XScale'),'log')
     if strcmp(get(ax,'XLimMode'),'manual') && any(get(ax,'XLim') == 0)
         % Fix illegal scalings set by the user
@@ -3300,3 +3308,88 @@ q(m:m:end) = [];
 fvc = reshape(c, [cm*cn cp]);
 fva = reshape(a, [am*an ap]);
 f = [q q+m q+m+1 q+1];
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Code by JRH to detect axes child limits
+function [xlims, ylims, zlims] = AxesChildBounds(ax)
+    children = findobj(ax, '-depth', 1, '-not', 'Type', 'axes');
+    dataObjs = findobj(children, 'Type', 'image', '-or', 'Type', 'line', ...
+        '-or', 'Type', 'patch', '-or', 'Type', 'Rectangle', '-or', 'Type', 'Surface');
+%     dataObjs = findobj(children, 'Type', 'line');
+    xlims = [0 1];
+    ylims = [0 1];
+    zlims = [0 1];
+    if numel(dataObjs) == 0
+        return;
+    end
+    if numel(dataObjs) == 1
+        val = get(dataObjs, 'XData');
+    else
+%         x = cell2mat(get(dataObjs, 'XData')');
+        val = zeros(numel(dataObjs), 2);
+        for i=1:numel(dataObjs)
+            data = get(dataObjs(i), 'XData');
+            if ~isempty(data)
+                val(i,1) = min(reshape(data, 1, []));
+                val(i,2) = max(reshape(data, 1, []));
+            else
+                val(i,:) = [-inf, inf];
+            end
+        end
+    end
+    if ~isempty(val)
+        val = val(~isinf(val));
+        if ~isempty(val)
+            xlims(1) = min(val);
+            xlims(2) = max(val);
+        end
+    end
+    clear val
+    
+    if numel(dataObjs) == 1
+        val = get(dataObjs, 'YData');
+    else
+%         x = cell2mat(get(dataObjs, 'YData')');
+        val = zeros(numel(dataObjs), 2);
+        for i=1:numel(dataObjs)
+            data = get(dataObjs(i), 'YData');
+            if ~isempty(data)
+                val(i,1) = min(reshape(data, 1, []));
+                val(i,2) = max(reshape(data, 1, []));
+            else
+                val(i,:) = [-inf, inf];
+            end
+        end
+    end
+    if ~isempty(val)
+        val = val(~isinf(val));
+        if ~isempty(val)
+            ylims(1) = min(val);
+            ylims(2) = max(val);
+        end
+    end
+    clear val
+
+    if numel(dataObjs) == 1
+        val = get(dataObjs, 'ZData');
+    else
+%         x = cell2mat(get(dataObjs, 'ZData')');
+        val = zeros(numel(dataObjs), 2);
+        for i=1:numel(dataObjs)
+            data = get(dataObjs(i), 'ZData');
+            if ~isempty(data)
+                val(i,1) = min(reshape(data, 1, []));
+                val(i,2) = max(reshape(data, 1, []));
+            else
+                val(i,:) = [-inf, inf];
+            end
+        end
+    end
+    if ~isempty(val)
+        val = val(~isinf(val));
+        if ~isempty(val)
+            zlims(1) = min(val);
+            zlims(2) = max(val);
+        end
+    end
+    clear val
