@@ -978,27 +978,33 @@ if strcmp(get(ax,'Visible'),'on')
     if strcmp(get(ax,'XScale'),'log')
         axxtick = log10(get(ax,'XTick'));
         minor_axxtick = [];
-        all_axxtick = ceil(min(axlimx)):1:ceil(max(axlimx));
-        for stick = all_axxtick
-            minor_axxtick = [minor_axxtick minor_log_sticks + stick];
+        if ~isempty(axxtick)
+            all_axxtick = axxtick(1):1:axxtick(end); 
+            for stick = all_axxtick
+                minor_axxtick = [minor_axxtick minor_log_sticks + stick]; 
+            end
         end
         minor_axxtick = minor_axxtick(minor_axxtick > min(axlimx) & minor_axxtick < max(axlimx));
     end
     if strcmp(get(ax,'YScale'),'log')
         axytick=log10(get(ax,'YTick'));
         minor_axytick = [];
-        all_axytick = ceil(min(axlimy)):1:ceil(max(axlimy));
-        for stick = all_axytick
-            minor_axytick = [minor_axytick minor_log_sticks + stick];
+        if ~isempty(axytick)
+            all_axytick = axytick(1):1:axytick(end); 
+            for stick = all_axytick
+                minor_axytick = [minor_axytick minor_log_sticks + stick]; 
+            end
         end
         minor_axytick = minor_axytick(minor_axytick > min(axlimy) & minor_axytick < max(axlimy));
     end
     if strcmp(get(ax,'ZScale'),'log')
         axztick=log10(get(ax,'ZTick'));
         minor_axztick = [];
-        all_axztick = ceil(min(axlimz)):1:ceil(max(axlimz));
-        for stick = all_axztick
-            minor_axztick = [minor_axztick minor_log_sticks + stick];
+        if ~isempty(axztick)
+            all_axztick = axztick(1):1:axztick(end); 
+            for stick = all_axztick
+                minor_axztick = [minor_axztick minor_log_sticks + stick]; 
+            end
         end
         minor_axztick = minor_axztick(minor_axztick > min(axlimz) & minor_axztick < max(axlimz));
     end
