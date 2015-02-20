@@ -263,6 +263,11 @@ for j=length(ax):-1:1
         groups = [groups group];
         [group, ax_] = legend2svg(fid, id, ax(j), group, paperpos);
         ax(j) = ax_;
+    elseif strcmp(currenttype, 'annotationpane')
+        group = group+1;
+        groups = [groups group];
+        [group, ax_] = annotationpane2svg(fid, id, ax(j), group, paperpos);
+        ax(j) = ax_;
     elseif strcmp(currenttype,'uicontrol')
         if strcmp(get(ax(j),'Visible'),'on')
             control2svg(fid,id,ax(j),group,paperpos);
@@ -779,14 +784,25 @@ end
 function [group, ax]=legend2svg(fid, id, ax, group, paperpos)
     warning('Plot2SVG:LegendUnsupported', 'The new legend datatype is currenty unsupported and will not be included in the SVG!');
     [group, ax] = axes2svg(fid, id, ax, group, paperpos);
+
+function [group, ax]=annotationpane2svg(fid, id, ax, group, paperpos)
+    warning('Plot2SVG:AnnotationPaneUnsupported', 'The new AnnotationPane datatype is currenty unsupported and will not be included in the SVG!');
+    [group, ax] = axes2svg(fid, id, ax, group, paperpos);
+    
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SUBFUNCTIONS %%%%%
 % Create axis frame and insert all children of this axis frame
 function [group, ax]=axes2svg(fid,id,ax,group,paperpos)
 % global colorname
 global PLOT2SVG_globals
-originalAxesUnits=get(ax,'Units');
-set(ax,'Units','normalized');
+axData = get(ax);
+if isfield(axData, 'Units')
+    originalAxesUnits=get(ax,'Units');
+    set(ax,'Units','normalized');
+else
+    originalAxesUnits = 'normalized';
+end
+
 axData = get(ax);
 realAxes = isfield(axData, 'XLim');
 if isgraphics(ax, 'Legend')
@@ -1507,7 +1523,9 @@ if strcmp(axData.Visible,'on')
     fprintf(fid,'    </g>\n');
 end
 fprintf(fid,'  </g>\n');
-set(ax,'Units',originalAxesUnits);
+if ~strcmp(originalAxesUnits, 'normalized')
+    set(ax,'Units',originalAxesUnits);
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % take any axis children and create objects for them
@@ -2111,8 +2129,12 @@ for i=length(axchild):-1:1
             rect(1), rect(2), rect(3), rect(4), curvature(1), curvature(2), fcolorname, scolorname, linewidth, pattern);
         % close the rectangle group
         fprintf(fid,'</g>\n');
-    elseif strcmp(get(axchild(i),'Type'),'text')
+    elseif strcmp(get(axchild(i),'Type'),'text') || strcmp(get(axchild(i), 'Type'), 'textboxshape')
         axchildData = get(axchild(i));
+        if isgraphics(axchild(i), 'textboxshape')
+            axchildData.Extent = axchildData.Position;
+            axchildData.Clipping = 'off';
+        end
 		if PLOT2SVG_globals.octave
 			extent = [0 0 0 0];
 		else
@@ -2629,10 +2651,15 @@ if ~realAxes
 end
 
 idData = get(id);
+if isgraphics(id, 'textboxshape')
+    idData.Rotation = 0;
+end
 originalTextUnits=idData.Units;
 originalTextPosition = idData.Position;
 if PLOT2SVG_globals.octave
 	set(id,'Units','data');
+elseif isgraphics(id, 'textboxshape')
+    set(id, 'Units', 'normalized');
 else
 	set(id,'Units','Data');
 end
@@ -3295,6 +3322,10 @@ if ~realAxes
     axData.Projection = 'orthographic';
     axData.PlotBoxAspectRatioMode = 'auto';
     axData.DataAspectRatioMode = 'auto';
+    
+    if ~isfield(axData, 'Position')
+        axData.Position = [0 0 1 1];
+    end
 end
 xc = axData.CameraTarget;
 phi = axData.CameraViewAngle;
