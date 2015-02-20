@@ -250,16 +250,19 @@ if (~ strcmp(figcolor, 'none'))
 end
 % Search all axes
 ax=get(id,'Children');
+axTypes = get(ax, 'Type');
 for j=length(ax):-1:1
-    currenttype = get(ax(j),'Type');
+    currenttype = axTypes{j};
     if strcmp(currenttype,'axes')
         group=group+1;
         groups=[groups group];
-        group=axes2svg(fid,id,ax(j),group,paperpos);
+        [group, ax_] =axes2svg(fid,id,ax(j),group,paperpos);
+        ax(j) = ax_;
     elseif strcmp(currenttype, 'legend')
         group = group+1;
         groups = [groups group];
-        group = legend2svg(fid, id, ax(j), group, paperpos);
+        [group, ax_] = legend2svg(fid, id, ax(j), group, paperpos);
+        ax(j) = ax_;
     elseif strcmp(currenttype,'uicontrol')
         if strcmp(get(ax(j),'Visible'),'on')
             control2svg(fid,id,ax(j),group,paperpos);
@@ -773,18 +776,109 @@ for i = 1:length(xg_line_start)
 end
 
 
-function group=legend2svg(fid, id, ax, group, paperpos)
+function [group, ax]=legend2svg(fid, id, ax, group, paperpos)
     warning('Plot2SVG:LegendUnsupported', 'The new legend datatype is currenty unsupported and will not be included in the SVG!');
-    %group = axes2svg(fid, id, ax, group, paperpos);
+    [group, ax] = axes2svg(fid, id, ax, group, paperpos);
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SUBFUNCTIONS %%%%%
 % Create axis frame and insert all children of this axis frame
-function group=axes2svg(fid,id,ax,group,paperpos)
+function [group, ax]=axes2svg(fid,id,ax,group,paperpos)
 % global colorname
 global PLOT2SVG_globals
 originalAxesUnits=get(ax,'Units');
 set(ax,'Units','normalized');
-axpos=get(ax,'Position');
+axData = get(ax);
+realAxes = isfield(axData, 'XLim');
+if isgraphics(ax, 'Legend')
+    legProps = axData;
+    % Find the axes that this legend is associated with
+    allAxes = findobj(ax.Parent, 'Type', 'axes');
+    for i=1:numel(allAxes)
+        legAx = allAxes(i);
+        [legH, icons] = legend(legAx);
+        if ~isempty(icons)
+            % If icons isn't empty, we accidentally created a legend for an
+            % axes!
+            delete(legH);
+        else
+            if legH == ax
+                % if legH is ax, then legAx must be the "host" axes
+                break;
+            end
+        end
+    end
+    
+    legStrings = legProps.String;
+    % Note that this will delete any custom context menu specified for the
+    % legend, since that handle will also be deleted when legend is deleted
+    % TODO, find a way to keep that context menu around
+    legProps = rmfield(legProps, {'Type', 'BeingDeleted', 'UIContextMenu', 'String'});
+    legProps = [fieldnames(legProps) struct2cell(legProps)]';
+    
+    delete(ax);
+    [ax, icons] = legend(legAx, legStrings, legProps{:});
+    axData = get(ax);
+    axData.Children = icons;
+end
+if ~realAxes
+    axData.XLim = [0 1];
+    axData.YLim = [0 1];
+    axData.ZLim = [-1 1];
+    axData.XScale = 'linear';
+    axData.YScale = 'linear';
+    axData.ZScale = 'linear';
+    axData.XDir = 'normal';
+    axData.YDir = 'normal';
+    axData.ZDir = 'normal';
+%     axData.Visible = 'on';
+    axData.XTick = -1;
+    axData.YTick = -1;
+    axData.ZTick = [-1 0 1];
+    axData.XTickLabel = '';
+    axData.YTickLabel = '';
+    axData.ZTickLabel = '';
+    axData.GridLineStyle = ':';
+    axData.MinorGridLineStyle = ':';
+    axData.TickLength = [0.01 0.025];
+    axData.Layer = 'bottom';
+    axData.TickDir = 'in';
+    if ~isfield(axData, 'Box')
+        axData.Box = 'off';
+    end
+    if strcmp(axData.Box, 'on')
+        axData.Color = [1 1 1];
+        axData.LineWidth = 1.5;
+        axData.XColor = axData.EdgeColor;
+        axData.YColor = axData.EdgeColor;
+        axData.ZColor = [0 0 0];
+    else
+        axData.Color = 'none';
+        axData.LineWidth = 0;
+        axData.XColor = [0 0 0];
+        axData.YColor = [0 0 0];
+        axData.ZColor = [0 0 0];
+    end
+    axData.GridAlpha = 1;
+    axData.MinorGridAlpha = 1;
+    axData.GridColorMode = 'auto';
+    axData.XGrid = 'off';
+    axData.YGrid = 'off';
+    axData.ZGrid = 'off';
+    axData.XAxisLocation = 'bottom';
+    axData.YAxisLocation = 'left';
+    axData.XTickMode = 'manual';
+    axData.YTickMode = 'manual';
+    axData.ZTickMode = 'auto';
+    axData.XTickLabelMode = 'manual';
+    axData.YTickLabelMode = 'manual';
+    axData.ZTickLabelMode = 'auto';
+    
+    if ~isfield(axData, 'Position')
+        axData.Position = [0 0 1 1];
+    end
+end
+
+axpos=axData.Position;
 faces =    [1 2 4 3; 2 4 8 6; 3 4 8 7; 1 2 6 5; 1 5 7 3; 5 6 8 7];
 %           x-y    ; y-z    ; x-z    ; y-z    ; x-z    ; x-y
 corners(:,:,1) = [1 1 2 3 4; 2 1 3 2 4];
@@ -809,14 +903,15 @@ most_back_edge_index = edge_index(1);
 back_faces = find(any(faces == most_back_edge_index,2));
 front_faces = find(all(faces ~= most_back_edge_index,2));
 groupax=group;
-axData = get(ax);
 axlimx=axData.XLim;
 axlimy=axData.YLim;
 axlimz=axData.ZLim;
-[axinflimx, axinflimy, axinflimz] = AxesChildBounds(ax);
-axlimx(isinf(axlimx)) = axinflimx(isinf(axlimx));
-axlimy(isinf(axlimy)) = axinflimy(isinf(axlimy));
-axlimz(isinf(axlimz)) = axinflimz(isinf(axlimz));
+if realAxes
+    [axinflimx, axinflimy, axinflimz] = AxesChildBounds(ax);
+    axlimx(isinf(axlimx)) = axinflimx(isinf(axlimx));
+    axlimy(isinf(axlimy)) = axinflimy(isinf(axlimy));
+    axlimz(isinf(axlimz)) = axinflimz(isinf(axlimz));
+end
 axlimxori=axlimx;
 axlimyori=axlimy;
 axlimzori=axlimz;
@@ -1132,9 +1227,11 @@ if strcmp(axData.Visible,'on')
 end
 fprintf(fid,'    <g>\n');
 axchild=axData.Children;
-if ~verLessThan('matlab','8.4.0')
-    % Matlab h2 engine
-    axchild = [axchild; ax.Title; ax.XLabel; ax.YLabel; ax.ZLabel];
+if realAxes
+    if ~verLessThan('matlab','8.4.0')
+        % Matlab h2 engine
+        axchild = [axchild; ax.Title; ax.XLabel; ax.YLabel; ax.ZLabel];
+    end
 end
 group = axchild2svg(fid,id,axIdString,ax,group,paperpos,axchild,axpos,groupax,projection,boundingBoxAxes);
 fprintf(fid,'    </g>\n');
@@ -1404,7 +1501,9 @@ if strcmp(axData.Visible,'on')
             end
         end
     end
-    exponent2svg(fid,groupax,axpos,paperpos,ax,axxtick,axytick,axztick)
+    if realAxes
+        exponent2svg(fid,groupax,axpos,paperpos,ax,axxtick,axytick,axztick)
+    end
     fprintf(fid,'    </g>\n');
 end
 fprintf(fid,'  </g>\n');
@@ -1416,6 +1515,23 @@ function group=axchild2svg(fid,id,axIdString,ax,group,paperpos,axchild,axpos,gro
 global colorname
 global PLOT2SVG_globals
 axData = get(ax);
+realAxes = isfield(axData, 'XLim');
+if ~realAxes
+    axData.XLim = [0 1];
+    axData.YLim = [0 1];
+    axData.ZLim = [-1 1];
+    axData.XScale = 'linear';
+    axData.YScale = 'linear';
+    axData.ZScale = 'linear';
+    axData.XDir = 'normal';
+    axData.YDir = 'normal';
+    axData.ZDir = 'normal';
+    axData.Layer = 'bottom';
+    axData.CLim = [0 1];
+    axData.ALim = [0 1];
+    axData.DataAspectRatio = [1 1 2];
+    axData.DataAspectRatioMode = 'auto';
+end
 for i=length(axchild):-1:1
     if strcmp(get(axchild(i), 'Visible'), 'off')
         % do nothing
@@ -2499,6 +2615,19 @@ function text2svg(fid,group,axpos,paperpos,id,ax,projection)
 global PLOT2SVG_globals;
 axData = get(ax);
 realAxes = isfield(axData, 'XLim');
+if ~realAxes
+    axData.XLim = [0 1];
+    axData.YLim = [0 1];
+    axData.ZLim = [-1 1];
+    axData.XScale = 'linear';
+    axData.YScale = 'linear';
+    axData.ZScale = 'linear';
+    axData.XLabel = -1;
+    axData.YLabel = -1;
+    axData.ZLabel = -1;
+    axData.Title = -1;
+end
+
 idData = get(id);
 originalTextUnits=idData.Units;
 originalTextPosition = idData.Position;
@@ -3151,6 +3280,22 @@ PLOT2SVG_globals.runningIdNumber = PLOT2SVG_globals.runningIdNumber + 1;
 function [projection, edges] = get_projection(ax,id)
 global PLOT2SVG_globals
 axData = get(ax);
+realAxes = isfield(axData, 'CameraTarget');
+if ~realAxes
+    axData.CameraTarget = [0.5 0.5 0];
+    axData.CameraViewAngle = 6.6086;
+    axData.View = [0 90];
+    axData.XLim = [0 1];
+    axData.YLim = [0 1];
+    axData.ZLim = [-1 1];
+    axData.DataAspectRatio = [1 1 2];
+    axData.XScale = 'linear';
+    axData.YScale = 'linear';
+    axData.ZScale = 'linear';
+    axData.Projection = 'orthographic';
+    axData.PlotBoxAspectRatioMode = 'auto';
+    axData.DataAspectRatioMode = 'auto';
+end
 xc = axData.CameraTarget;
 phi = axData.CameraViewAngle;
 vi = axData.View;
@@ -3158,10 +3303,12 @@ xi = axData.XLim;
 yi = axData.YLim;
 zi = axData.ZLim;
 projection.aspect_scaling = axData.DataAspectRatio;
-[xinfi, yinfi, zinfi] = AxesChildBounds(ax);
-xi(isinf(xi)) = xinfi(isinf(xi));
-yi(isinf(yi)) = yinfi(isinf(yi));
-zi(isinf(zi)) = zinfi(isinf(zi));
+if realAxes
+    [xinfi, yinfi, zinfi] = AxesChildBounds(ax);
+    xi(isinf(xi)) = xinfi(isinf(xi));
+    yi(isinf(yi)) = yinfi(isinf(yi));
+    zi(isinf(zi)) = zinfi(isinf(zi));
+end
 if strcmp(axData.XScale,'log')
     if strcmp(axData.XLimMode,'manual') && any(axData.XLim == 0)
         % Fix illegal scalings set by the user
@@ -3267,6 +3414,15 @@ edges = [x2; y2; z2];
 function [x2,y2,z2] = project(x,y,z,projection)
 [m,n] = size(x);
 axData = get(projection.ax);
+realAxes = isfield(axData, 'CameraTarget');
+if ~realAxes
+    axData.XScale = 'linear';
+    axData.YScale = 'linear';
+    axData.ZScale = 'linear';
+    axData.XDir = 'normal';
+    axData.YDir = 'normal';
+end
+
 if strcmp(axData.XDir,'reverse')
     xi = projection.xi;
     x = (1 - (x - xi(1)) / (xi(2) - xi(1))) * (xi(2) - xi(1)) + xi(1);
