@@ -1415,6 +1415,7 @@ set(ax,'Units',originalAxesUnits);
 function group=axchild2svg(fid,id,axIdString,ax,group,paperpos,axchild,axpos,groupax,projection,boundingBoxAxes)
 global colorname
 global PLOT2SVG_globals
+axData = get(ax);
 for i=length(axchild):-1:1
     if strcmp(get(axchild(i), 'Visible'), 'off')
         % do nothing
@@ -1444,13 +1445,13 @@ for i=length(axchild):-1:1
         markersize=get(axchild(i),'MarkerSize')/1.5;
         linex = get(axchild(i),'XData');
         linex = linex(:)'; % Octave stores the data in a column vector
-        if strcmp(get(ax,'XScale'),'log')
+        if strcmp(axData.XScale,'log')
             linex(linex<=0) = NaN;
             linex=log10(linex);
         end
         liney=get(axchild(i),'YData');
         liney = liney(:)'; % Octave stores the data in a column vector        
-        if strcmp(get(ax,'YScale'),'log')
+        if strcmp(axData.YScale,'log')
             liney(liney<=0) = NaN;
             liney=log10(liney);
         end
@@ -1459,7 +1460,7 @@ for i=length(axchild):-1:1
         if isempty(linez)
             linez = zeros(size(linex));    
         end
-        if strcmp(get(ax,'ZScale'),'log')
+        if strcmp(axData.ZScale,'log')
             linez(linez<=0) = NaN;
             linez=log10(linez);
         end
@@ -1518,7 +1519,7 @@ for i=length(axchild):-1:1
         % close the line group
         fprintf(fid,'</g>\n');
     elseif strcmp(get(axchild(i),'Type'),'contour')
-        clim = get(ax,'CLim');
+        clim = axData.CLim;
         cmap = get(id,'Colormap');
         c = get(axchild(i),'ContourMatrix');
         linestyle = get(axchild(i),'LineStyle');
@@ -1578,7 +1579,7 @@ for i=length(axchild):-1:1
         end
         % Scale color if scaled color mapping is turned on
         if strcmp(get(axchild(i),'CDataMapping'),'scaled')
-            clim=get(ax,'CLim');
+            clim=axData.CLim;
             pointc=(pointc-clim(1))/(clim(2)-clim(1))*(size(cmap,1)-1)+1;
         end
         % Limit index to smallest or biggest color index
@@ -1600,10 +1601,10 @@ for i=length(axchild):-1:1
         markeredgecolor=get(axchild(i),'MarkerEdgeColor');
         markersize=get(axchild(i),'MarkerSize')/1.5;
         points=get(axchild(i),'Vertices')';
-        if strcmp(get(ax,'XScale'),'log')
+        if strcmp(axData.XScale,'log')
             points(1,:)=log10(points(1,:));
         end
-        if strcmp(get(ax,'YScale'),'log')
+        if strcmp(axData.YScale,'log')
             points(2,:)=log10(points(2,:));
         end
         % TODO LogZ
@@ -1792,7 +1793,7 @@ for i=length(axchild):-1:1
         points=points';
         % Scale color if scaled color mapping is turned on
         if strcmp(get(axchild(i),'CDataMapping'),'scaled')
-            clim=get(ax,'CLim');
+            clim=axData.CLim;
             pointc=(pointc-clim(1))/(clim(2)-clim(1))*(size(cmap,1)-1)+1;
         end
         % Limit index to smallest or biggest color index
@@ -1805,7 +1806,7 @@ for i=length(axchild):-1:1
                 case {'direct'}
                     face_opacity = 1.0; % TODO
                 case {'scaled'}
-                    alim=get(ax,'ALim');
+                    alim=axData.ALim;
                     face_opacity=(face_opacity-alim(1))/(alim(2)-alim(1));
                 case {'none'}
                     % Clip alpha data
@@ -1825,14 +1826,14 @@ for i=length(axchild):-1:1
         pointc=min(pointc,size(cmap,1));
         linestyle=get(axchild(i),'LineStyle');
         linewidth=get(axchild(i),'LineWidth');
-        if strcmp(get(ax,'XScale'),'log')
+        if strcmp(axData.XScale,'log')
             points(1,:)=log10(points(1,:));
         end
-        if strcmp(get(ax,'YScale'),'log')
+        if strcmp(axData.YScale,'log')
             points(2,:)=log10(points(2,:));
         end
         if size(points,1)==3
-            if strcmp(get(ax,'ZScale'),'log')
+            if strcmp(axData.ZScale,'log')
                 points(3,:)=log10(points(3,:));
             end   
         end
@@ -1951,12 +1952,12 @@ for i=length(axchild):-1:1
         linewidth = get(axchild(i),'LineWidth');
         position = get(axchild(i),'Position');
         posx = [position(1) position(1)+position(3)];
-        if strcmp(get(ax,'XScale'),'log')
+        if strcmp(axData.XScale,'log')
             posx(posx <= 0) = NaN;
             posx=log10(posx);
         end
         posy = [position(2) position(2)+position(4)];
-        if strcmp(get(ax,'YScale'),'log')
+        if strcmp(axData.YScale,'log')
             posy(posy <= 0) = NaN;
             posy=log10(posy);
         end
@@ -1995,16 +1996,17 @@ for i=length(axchild):-1:1
         % close the rectangle group
         fprintf(fid,'</g>\n');
     elseif strcmp(get(axchild(i),'Type'),'text')
+        axchildData = get(axchild(i));
 		if PLOT2SVG_globals.octave
 			extent = [0 0 0 0];
 		else
-			extent = get(axchild(i),'Extent');
+			extent = axchildData.Extent;
 		end
-        margin = get(axchild(i),'Margin');
-        facecolor = get(axchild(i),'BackgroundColor');
-        edgecolor = get(axchild(i),'EdgeColor');
-        linewidth = get(axchild(i),'LineWidth');
-        linestyle = get(axchild(i),'LineStyle');
+        margin = axchildData.Margin;
+        facecolor = axchildData.BackgroundColor;
+        edgecolor = axchildData.EdgeColor;
+        linewidth = axchildData.LineWidth;
+        linestyle = axchildData.LineStyle;
         if ischar(facecolor)
             if ~strcmp(facecolor,'none')
                 error('Illegal face color for text.');    
@@ -2036,7 +2038,7 @@ for i=length(axchild):-1:1
         end
         boundingBoxElement = [min(x)-markerOverlap min(y)-markerOverlap max(x)-min(x)+2*markerOverlap max(y)-min(y)+2*markerOverlap];
         [filterString, boundingBox] = filter2svg(fid, axchild(i), boundingBoxAxes, boundingBoxElement);
-        if strcmp(get(axchild(i),'Clipping'),'on') && ~PLOT2SVG_globals.octave
+        if strcmp(axchildData.Clipping,'on') && ~PLOT2SVG_globals.octave
             clippingIdString = clipping2svg(fid, axchild(i), ax, paperpos, axpos, projection, axIdString);
             fprintf(fid,'<g id="%s" clip-path="url(#%s)" %s>\n', createId, clippingIdString, filterString);
         else
@@ -2073,11 +2075,11 @@ for i=length(axchild):-1:1
         pointc=get(axchild(i),'CData');
         %pointcclass = class(pointc);  % Bugfix proposed by Tom
         if strcmp(get(axchild(i),'CDataMapping'),'scaled')
-            clim=get(ax,'CLim');
+            clim=axData.CLim;
             pointc=(pointc-clim(1))/(clim(2)-clim(1))*(size(cmap,1) - 1) + 1; % Bugfix proposed by Tom
             %pointcclass = 'double'; % since range is now [0->size(cmap,1)-1]  % Bugfix proposed by Tom
         end
-        data_aspect_ratio = get(ax,'DataAspectRatio');
+        data_aspect_ratio = axData.DataAspectRatio;
         if length(x) == 2
             if size(pointc, 2) == 1
                 halfwidthx = abs(x(2) - x(1)) * data_aspect_ratio(1);
@@ -2097,7 +2099,7 @@ for i=length(axchild):-1:1
             halfwidthy = data_aspect_ratio(2);
         end
         if length(pointx) > 1
-            if xor(strcmp(get(ax,'XDir'),'reverse'), pointx(1) > pointx(2))
+            if xor(strcmp(axData.XDir,'reverse'), pointx(1) > pointx(2))
                 if ismatrix(pointc)
                     pointc=fliplr(pointc);
                 elseif ndims(pointc) == 3
@@ -2110,7 +2112,7 @@ for i=length(axchild):-1:1
             end
         end
         if length(pointy) > 1
-            if xor(strcmp(get(ax,'YDir'),'reverse'), pointy(1) > pointy(2))
+            if xor(strcmp(axData.YDir,'reverse'), pointy(1) > pointy(2))
                 if ismatrix(pointc)
                     pointc=flipud(pointc);
                 elseif ndims(pointc) == 3
@@ -2134,7 +2136,7 @@ for i=length(axchild):-1:1
         if ndims(pointc) ~= 3
             pointc = max(min(round(double(pointc)),size(cmap,1)),1);
         end
-%         CameraUpVector = get(ax,'CameraUpVector');
+%         CameraUpVector = axData.CameraUpVector;
         filename = [PLOT2SVG_globals.basefilename sprintf('%03d',PLOT2SVG_globals.figurenumber) '.' PLOT2SVG_globals.pixelfiletype];
         PLOT2SVG_globals.figurenumber = PLOT2SVG_globals.figurenumber + 1;
         if isempty(PLOT2SVG_globals.basefilepath)
@@ -2170,7 +2172,7 @@ for i=length(axchild):-1:1
         end
             lx=(size(pointc,2)*halfwidthx)*axpos(3)*paperpos(3);
         	ly=(size(pointc,1)*halfwidthy)*axpos(4)*paperpos(4);
-        if strcmp(get(ax,'DataAspectRatioMode'),'manual')
+        if strcmp(axData.DataAspectRatioMode,'manual')
             pointsx=((min(x) - halfwidthx/2)*axpos(3)+axpos(1))*paperpos(3);
             pointsy=(1-((max(y) + halfwidthy/2)*axpos(4)+axpos(2)))*paperpos(4);
         else
@@ -2495,54 +2497,57 @@ fprintf(fid,'<image x="%0.3f" y="%0.3f" width="%0.3f" height="%0.3f" image-rende
 % the position of the text has to be adapted to the axis scaling
 function text2svg(fid,group,axpos,paperpos,id,ax,projection)
 global PLOT2SVG_globals;
-originalTextUnits=get(id,'Units');
-originalTextPosition = get(id, 'Position');
+axData = get(ax);
+realAxes = isfield(axData, 'XLim');
+idData = get(id);
+originalTextUnits=idData.Units;
+originalTextPosition = idData.Position;
 if PLOT2SVG_globals.octave
 	set(id,'Units','data');
 else
 	set(id,'Units','Data');
 end
-textpos=get(id,'Position');
+textpos=idData.Position;
 if PLOT2SVG_globals.octave
-    xlim = get(ax, 'XLim');
-    ylim = get(ax, 'YLim');
-    zlim = get(ax, 'ZLim');
-    if get(ax, 'XLabel') == id
+    xlim = axData.XLim;
+    ylim = axData.YLim;
+    zlim = axData.ZLim;
+    if axData.XLabel == id
         textpos = textpos + [mean(xlim) ylim(1)-diff(ylim)./axpos(4)*0.06 0];
-    elseif get(ax, 'YLabel') == id
+    elseif axData.YLabel == id
         textpos = textpos + [xlim(1)-diff(xlim)./axpos(3)*0.06 mean(ylim) 0];
-    elseif get(ax, 'ZLabel') == id
+    elseif axData.ZLabel == id
         if projection.xyplane
             return;
         end
         textpos = textpos + [xlim(1)-diff(xlim)./axpos(3)*0.06 0 mean(zlim)];
-    elseif get(ax, 'Title') == id
+    elseif axData.Title == id
         textpos = textpos + [mean(xlim) ylim(2)+diff(ylim)./axpos(4)*0.01 0];
     end
 end
-% textfontsize = get(id,'FontSize');
-fontsize = convertunit(get(id,'FontSize'),get(id,'FontUnits'),'points', axpos(4));   % convert fontsize to inches
+% textfontsize = idData.FontSize;
+fontsize = convertunit(idData.FontSize,idData.FontUnits,'points', axpos(4));   % convert fontsize to inches
 % paperposOriginal = get(gcf,'Position');
-font_color = searchcolor(id,get(id,'Color'));
-if strcmp(get(ax,'XScale'),'log')
+font_color = searchcolor(id,idData.Color);
+if strcmp(axData.XScale,'log')
     textpos(1) = log10(textpos(1));
 end
-if strcmp(get(ax,'YScale'),'log')
+if strcmp(axData.YScale,'log')
     textpos(2) = log10(textpos(2));
 end
-if strcmp(get(ax,'ZScale'),'log')
+if strcmp(axData.ZScale,'log')
     textpos(3) = log10(textpos(3));
 end
 [x,y,~] = project(textpos(1), textpos(2), textpos(3), projection);
 x = (x * axpos(3) + axpos(1)) * paperpos(3);
 y = (1 - (y * axpos(4) + axpos(2))) * paperpos(4);
-textvalign = get(id,'VerticalAlignment');
-textalign = get(id,'HorizontalAlignment');
-texttext = get(id,'String');
-textrot = get(id,'Rotation');
+textvalign = idData.VerticalAlignment;
+textalign = idData.HorizontalAlignment;
+texttext = idData.String;
+textrot = idData.Rotation;
 dx = sin(textrot * pi / 180) * convertunit(fontsize * 1.2, 'points', 'pixels');
 dy = cos(textrot * pi / 180) * convertunit(fontsize * 1.2, 'points', 'pixels');
-lines = max(size(get(id,'String'),1),1);
+lines = max(size(idData.String,1),1);
 if size(texttext,2)~=0
     j = 1;
     for i = 0:1:(lines - 1)
@@ -2565,18 +2570,19 @@ set(id,'Position', originalTextPosition);
 % the exponent have therefore to be extracted from the thickmarks
 function exponent2svg(fid,group,axpos,paperpos,ax,axxtick,axytick,axztick)
 global PLOT2SVG_globals
-if strcmp(get(ax,'XTickLabelMode'),'auto') && strcmp(get(ax,'XScale'),'linear')
-    fontsize=convertunit(get(ax,'FontSize'),get(ax,'FontUnits'),'points', axpos(4));   % convert fontsize to inches
-    font_color=searchcolor(ax,get(ax,'XColor'));
+axData = get(ax);
+if strcmp(axData.XTickLabelMode,'auto') && strcmp(axData.XScale,'linear')
+    fontsize=convertunit(axData.FontSize,axData.FontUnits,'points', axpos(4));   % convert fontsize to inches
+    font_color=searchcolor(ax,axData.XColor);
     if PLOT2SVG_globals.octave
         % Octave stores XTickLabel in a cell array, which does not work nicely with str2num. --Jakob Malm
-        axlabelx = get(ax, 'XTickLabel');
+        axlabelx = axData.XTickLabel;
         numlabels = zeros(length(axlabelx), 1);
         for ix = 1:length (axlabelx)
             numlabels(ix) = str2num(axlabelx{ix}); %#ok<ST2NM>
         end
     else
-        axlabelx = get(ax, 'XTickLabel');
+        axlabelx = axData.XTickLabel;
         if iscellstr(axlabelx)
             numlabels = str2double(axlabelx);
         else
@@ -2586,7 +2592,7 @@ if strcmp(get(ax,'XTickLabelMode'),'auto') && strcmp(get(ax,'XScale'),'linear')
             numlabels = [];
         end
     end
-    labelpos = axxtick;%get(ax,'XTick');
+    labelpos = axxtick;%axData.XTick;
     numlabels = numlabels(:);
     labelpos = labelpos(:);
     indexnz = find(labelpos ~= 0);
@@ -2599,18 +2605,18 @@ if strcmp(get(ax,'XTickLabelMode'),'auto') && strcmp(get(ax,'XScale'),'linear')
         end
     end
 end
-if strcmp(get(ax,'YTickLabelMode'),'auto') && strcmp(get(ax,'YScale'),'linear')
-    fontsize=convertunit(get(ax,'FontSize'),get(ax,'FontUnits'),'points', axpos(4));
-    font_color=searchcolor(ax,get(ax,'YColor'));
+if strcmp(axData.YTickLabelMode,'auto') && strcmp(axData.YScale,'linear')
+    fontsize=convertunit(axData.FontSize,axData.FontUnits,'points', axpos(4));
+    font_color=searchcolor(ax,axData.YColor);
     if PLOT2SVG_globals.octave
         % Octave stores YTickLabel in a cell array, which does not work nicely with str2num. --Jakob Malm
-        axlabely = get(ax, 'YTickLabel');
+        axlabely = axData.YTickLabel;
         numlabels = zeros(length(axlabely), 1);
         for ix = 1:length(axlabely)
             numlabels(ix) = str2num(axlabely{ix}); %#ok<ST2NM>
         end        
     else
-        axlabely = get(ax, 'YTickLabel');
+        axlabely = axData.YTickLabel;
         if iscellstr(axlabely)
             numlabels = str2double(axlabely);
         else
@@ -2620,7 +2626,7 @@ if strcmp(get(ax,'YTickLabelMode'),'auto') && strcmp(get(ax,'YScale'),'linear')
             numlabels = [];
         end
     end
-    labelpos = axytick;%get(ax,'YTick');
+    labelpos = axytick;%axData.YTick;
     numlabels = numlabels(:);
     labelpos = labelpos(:);
     indexnz = find(labelpos ~= 0);
@@ -2632,9 +2638,9 @@ if strcmp(get(ax,'YTickLabelMode'),'auto') && strcmp(get(ax,'YScale'),'linear')
         end
     end
 end
-if strcmp(get(ax,'ZTickLabelMode'),'auto') && strcmp(get(ax,'ZScale'),'linear')
-    fontsize=convertunit(get(ax,'FontSize'),get(ax,'FontUnits'),'points', axpos(4));
-    font_color=searchcolor(ax,get(ax,'ZColor'));
+if strcmp(axData.ZTickLabelMode,'auto') && strcmp(axData.ZScale,'linear')
+    fontsize=convertunit(axData.FontSize,axData.FontUnits,'points', axpos(4));
+    font_color=searchcolor(ax,axData.ZColor);
     if PLOT2SVG_globals.octave
         % Octave stores ZTickLabel in a cell array, which does not work nicely with str2num. --Jakob Malm
         axlabelz = get (ax, 'ZTickLabel');
@@ -2643,7 +2649,7 @@ if strcmp(get(ax,'ZTickLabelMode'),'auto') && strcmp(get(ax,'ZScale'),'linear')
             numlabels(ix) = str2num(axlabelz{ix}); %#ok<ST2NM>
         end
     else
-        axlabelz = get(ax, 'ZTickLabel');
+        axlabelz = axData.ZTickLabel;
         if iscellstr(axlabelz)
             numlabels = str2double(axlabelz);
         else
@@ -2653,7 +2659,7 @@ if strcmp(get(ax,'ZTickLabelMode'),'auto') && strcmp(get(ax,'ZScale'),'linear')
             numlabels = [];
         end
     end
-    labelpos = axztick;%get(ax,'ZTick');
+    labelpos = axztick;%axData.ZTick;
     numlabels = numlabels(:);
     labelpos = labelpos(:);
     indexnz = find(labelpos ~= 0);
@@ -3260,25 +3266,26 @@ edges = [x2; y2; z2];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [x2,y2,z2] = project(x,y,z,projection)
 [m,n] = size(x);
-if strcmp(get(projection.ax,'XDir'),'reverse')
+axData = get(projection.ax);
+if strcmp(axData.XDir,'reverse')
     xi = projection.xi;
     x = (1 - (x - xi(1)) / (xi(2) - xi(1))) * (xi(2) - xi(1)) + xi(1);
 end
-if strcmp(get(projection.ax,'YDir'),'reverse')
+if strcmp(axData.YDir,'reverse')
     yi = projection.yi;
     y = (1 - (y - yi(1)) / (yi(2) - yi(1))) * (yi(2) - yi(1)) + yi(1);
 end
-if strcmp(get(projection.ax,'XScale'),'log')
+if strcmp(axData.XScale,'log')
     x = x - log10(projection.aspect_scaling(1));
 else
     x = x/projection.aspect_scaling(1);
 end
-if strcmp(get(projection.ax,'YScale'),'log')
+if strcmp(axData.YScale,'log')
     y = y - log10(projection.aspect_scaling(2));
 else
     y = y/projection.aspect_scaling(2);
 end
-if strcmp(get(projection.ax,'ZScale'),'log')
+if strcmp(axData.ZScale,'log')
     z = z - log10(projection.aspect_scaling(3));
 else
     z = z/projection.aspect_scaling(3);
