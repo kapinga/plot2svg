@@ -3144,55 +3144,56 @@ PLOT2SVG_globals.runningIdNumber = PLOT2SVG_globals.runningIdNumber + 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [projection, edges] = get_projection(ax,id)
 global PLOT2SVG_globals
-xc = get(ax,'CameraTarget');
-phi = get(ax,'CameraViewAngle');
-vi = get(ax,'View');
-xi = get(ax,'XLim');
-yi = get(ax,'YLim');
-zi = get(ax,'ZLim');
-projection.aspect_scaling = get(ax,'DataAspectRatio');
+axData = get(ax);
+xc = axData.CameraTarget;
+phi = axData.CameraViewAngle;
+vi = axData.View;
+xi = axData.XLim;
+yi = axData.YLim;
+zi = axData.ZLim;
+projection.aspect_scaling = axData.DataAspectRatio;
 [xinfi, yinfi, zinfi] = AxesChildBounds(ax);
 xi(isinf(xi)) = xinfi(isinf(xi));
 yi(isinf(yi)) = yinfi(isinf(yi));
 zi(isinf(zi)) = zinfi(isinf(zi));
-if strcmp(get(ax,'XScale'),'log')
-    if strcmp(get(ax,'XLimMode'),'manual') && any(get(ax,'XLim') == 0)
+if strcmp(axData.XScale,'log')
+    if strcmp(axData.XLimMode,'manual') && any(axData.XLim == 0)
         % Fix illegal scalings set by the user
         % -> replace all 0 with automatic calculated values (child limits)
-        xlimM = get(ax,'XLim');
+        xlimM = axData.XLim;
         set(ax,'XLimMode','auto');
-        xlimA = get(ax,'XLim');
+        xlimA = axData.XLim;
         xlimM(xlimM == 0) = xlimA(xlimM == 0);
         set(ax,'XLimMode','manual');
         set(ax,'XLim', xlimM);
     end
-    xi = log10(get(ax,'XLim'));
+    xi = log10(axData.XLim);
 end
-if strcmp(get(ax,'YScale'),'log')
-    if strcmp(get(ax,'YLimMode'),'manual') && any(get(ax,'YLim') == 0)
+if strcmp(axData.YScale,'log')
+    if strcmp(axData.YLimMode,'manual') && any(axData.YLim == 0)
         % Fix illegal scalings set by the user
         % -> replace all 0 with automatic calculated values (child limits)
-        ylimM = get(ax,'YLim');
+        ylimM = axData.YLim;
         set(ax,'YLimMode','auto');
-        ylimA = get(ax,'YLim');
+        ylimA = axData.YLim;
         ylimM(ylimM == 0) = ylimA(ylimM == 0);
         set(ax,'YLimMode','manual');
         set(ax,'YLim', ylimM);
     end
-    yi = log10(get(ax,'YLim'));
+    yi = log10(axData.YLim);
 end
-if strcmp(get(ax,'ZScale'),'log')
-    if strcmp(get(ax,'ZLimMode'),'manual') && any(get(ax,'ZLim') == 0)
+if strcmp(axData.ZScale,'log')
+    if strcmp(axData.ZLimMode,'manual') && any(axData.ZLim == 0)
         % Fix illegal scalings set by the user
         % -> replace all 0 with automatic calculated values (child limits)
-        zlimM = get(ax,'ZLim');
+        zlimM = axData.ZLim;
         set(ax,'ZLimMode','auto');
-        zlimA = get(ax,'ZLim');
+        zlimA = axData.ZLim;
         zlimM(zlimM == 0) = zlimA(zlimM == 0);
         set(ax,'ZLimMode','manual');
         set(ax,'ZLim', zlimM);
     end
-    zi = log10(get(ax,'ZLim'));
+    zi = log10(axData.ZLim);
 end
 projection.xi = xi;
 projection.yi = yi;
@@ -3200,27 +3201,27 @@ projection.zi = zi;
 xc(1) = (xc(1) - xi(1))/(xi(2)-xi(1));
 xc(2) = (xc(2) - yi(1))/(yi(2)-yi(1));
 xc(3) = (xc(3) - zi(1))/(zi(2)-zi(1));
-if strcmp(get(ax,'XScale'),'log')
+if strcmp(axData.XScale,'log')
     x = [xi(1) xi(2) xi(1) xi(2) xi(1) xi(2) xi(1) xi(2)] - log10(projection.aspect_scaling(1));
 else
     x = [xi(1) xi(2) xi(1) xi(2) xi(1) xi(2) xi(1) xi(2)]/projection.aspect_scaling(1);
 end
-if strcmp(get(ax,'YScale'),'log')
+if strcmp(axData.YScale,'log')
     y = [yi(1) yi(1) yi(2) yi(2) yi(1) yi(1) yi(2) yi(2)] - log10(projection.aspect_scaling(2));
 else
     y = [yi(1) yi(1) yi(2) yi(2) yi(1) yi(1) yi(2) yi(2)]/projection.aspect_scaling(2);
 end
-if strcmp(get(ax,'ZScale'),'log')
+if strcmp(axData.ZScale,'log')
     z = [zi(1) zi(1) zi(1) zi(1) zi(2) zi(2) zi(2) zi(2)] - log10(projection.aspect_scaling(3));
 else
     z = [zi(1) zi(1) zi(1) zi(1) zi(2) zi(2) zi(2) zi(2)]/projection.aspect_scaling(3);    
 end
 if PLOT2SVG_globals.octave
-        projection.A = get(ax,'x_ViewTransform');
+        projection.A = axData.x_ViewTransform;
         projection.A(3,:) = -projection.A(3,:);
         projection.A(1:3,4) = 0;
 else
-    if strcmp(get(ax,'Projection'),'orthographic')
+    if strcmp(axData.Projection,'orthographic')
         projection.A = viewmtx(vi(1),vi(2));
     else
         projection.A = viewmtx(vi(1),vi(2),phi,xc);
@@ -3231,7 +3232,7 @@ if (vi(1) == 0) && (mod(vi(2),90) == 0)
 else
     projection.xyplane = false;
 end
-axpos = get(ax,'Position');
+axpos = axData.Position;
 figpos = get(id,'Position');
 [m,n] = size(x);
 x4d = [x(:),y(:),z(:),ones(m*n,1)]';
@@ -3244,7 +3245,7 @@ projection.xrange = max(x2) - min(x2);
 projection.yrange = max(y2) - min(y2);
 projection.xoffset = (max(x2) + min(x2))/2;
 projection.yoffset = (max(y2) + min(y2))/2;
-if (strcmp(get(ax,'PlotBoxAspectRatioMode'),'manual') || strcmp(get(ax,'DataAspectRatioMode'),'manual'))
+if (strcmp(axData.PlotBoxAspectRatioMode,'manual') || strcmp(axData.DataAspectRatioMode,'manual'))
       if (projection.xrange*axpos(4)*figpos(4) < projection.yrange*axpos(3)*figpos(3))
           projection.xrange = projection.yrange*axpos(3)*figpos(3)/axpos(4)/figpos(4);
       else
