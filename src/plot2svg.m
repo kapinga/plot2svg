@@ -809,9 +809,10 @@ most_back_edge_index = edge_index(1);
 back_faces = find(any(faces == most_back_edge_index,2));
 front_faces = find(all(faces ~= most_back_edge_index,2));
 groupax=group;
-axlimx=get(ax,'XLim');
-axlimy=get(ax,'YLim');
-axlimz=get(ax,'ZLim');
+axData = get(ax);
+axlimx=axData.XLim;
+axlimy=axData.YLim;
+axlimz=axData.ZLim;
 [axinflimx, axinflimy, axinflimz] = AxesChildBounds(ax);
 axlimx(isinf(axlimx)) = axinflimx(isinf(axlimx));
 axlimy(isinf(axlimy)) = axinflimy(isinf(axlimy));
@@ -819,25 +820,25 @@ axlimz(isinf(axlimz)) = axinflimz(isinf(axlimz));
 axlimxori=axlimx;
 axlimyori=axlimy;
 axlimzori=axlimz;
-if strcmp(get(ax,'XScale'),'log')
+if strcmp(axData.XScale,'log')
     axlimx=log10(axlimx);
     axlimx(isinf(axlimx))=0;
 end
-if strcmp(get(ax,'YScale'),'log')
+if strcmp(axData.YScale,'log')
     axlimy=log10(axlimy);
     axlimy(isinf(axlimy))=0;
 end
-if strcmp(get(ax,'ZScale'),'log')
+if strcmp(axData.ZScale,'log')
     axlimz=log10(axlimz);
     axlimz(isinf(axlimz))=0;
 end
-if strcmp(get(ax,'XDir'),'reverse')
+if strcmp(axData.XDir,'reverse')
     axlimx = fliplr(axlimx);
 end
-if strcmp(get(ax,'YDir'),'reverse')
+if strcmp(axData.YDir,'reverse')
     axlimy = fliplr(axlimy);
 end
-if strcmp(get(ax,'ZDir'),'reverse')
+if strcmp(axData.ZDir,'reverse')
     axlimz = fliplr(axlimz);
 end
 axlimori = [axlimxori(1) axlimyori(1) axlimzori(1) axlimxori(2)-axlimxori(1) axlimyori(2)-axlimyori(1) axlimzori(2)-axlimzori(1)];
@@ -848,33 +849,33 @@ fprintf(fid,'  <clipPath id="%s">\n',axIdString);
 fprintf(fid,'    <rect x="%0.3f" y="%0.3f" width="%0.3f" height="%0.3f"/>\n',...
     boundingBoxAxes(1), boundingBoxAxes(2), boundingBoxAxes(3), boundingBoxAxes(4));
 fprintf(fid,'  </clipPath>\n');
-if strcmp(get(ax,'Visible'),'on')
+if strcmp(axData.Visible,'on')
     group=group+1;
     grouplabel=group;
-    axxtick=get(ax,'XTick');
-    axytick=get(ax,'YTick');
-    axztick=get(ax,'ZTick');
-    axlabelx=get(ax,'XTickLabel');
-    axlabely=get(ax,'YTickLabel');
-    axlabelz=get(ax,'ZTickLabel');
+    axxtick=axData.XTick;
+    axytick=axData.YTick;
+    axztick=axData.ZTick;
+    axlabelx=axData.XTickLabel;
+    axlabely=axData.YTickLabel;
+    axlabelz=axData.ZTickLabel;
     % Workaround for Octave
     if PLOT2SVG_globals.octave
         if isempty(axlabelx)
-            if strcmp(get(ax,'XScale'),'log')
+            if strcmp(axData.XScale,'log')
                 axlabelx = num2str(log10(axxtick)');
             else
                 axlabelx = num2str(axxtick');
             end
         end
         if isempty(axlabely)
-            if strcmp(get(ax,'YScale'),'log')
+            if strcmp(axData.YScale,'log')
                 axlabely = num2str(log10(axytick)');
             else
                 axlabely = num2str(axytick');
             end
         end
         if isempty(axlabelz)
-            if strcmp(get(ax,'ZScale'),'log')
+            if strcmp(axData.ZScale,'log')
                 axlabelz = num2str(log10(axztick)');
             else
                 axlabelz = num2str(axztick');
@@ -884,16 +885,16 @@ if strcmp(get(ax,'Visible'),'on')
             axlabelz = [];
         end
     end
-    gridlinestyle=get(ax,'GridLineStyle');
-    minor_gridlinestyle=get(ax,'MinorGridLineStyle');
+    gridlinestyle=axData.GridLineStyle;
+    minor_gridlinestyle=axData.MinorGridLineStyle;
     try % Octave does not have 'TickLength' yet. --Jakob Malm
-        both_ticklength = get(ax,'TickLength');
+        both_ticklength = axData.TickLength;
     catch
         both_ticklength = [ 0.01 0.025 ];
     end
     gridBehind = true; % Default setting
     try
-        if strcmp(get(ax, 'Layer'), 'top') && projection.xyplane 
+        if strcmp(axData.Layer, 'top') && projection.xyplane 
             gridBehind = false;
         end
     catch
@@ -907,7 +908,7 @@ if strcmp(get(ax,'Visible'),'on')
         else
             tick_ratio = [xy_ratio 1 1];
         end
-        if strcmp(get(ax,'TickDir'),'out')
+        if strcmp(axData.TickDir,'out')
             label_distance = -(0.02 + ticklength);
         else
             label_distance = -0.02;
@@ -917,7 +918,7 @@ if strcmp(get(ax,'Visible'),'on')
         label_distance = -2*abs(ticklength);
         tick_ratio = [1 1 1];
     end
-%     linewidth = get(ax,'LineWidth');
+%     linewidth = axData.LineWidth;
     axxindex=find((axxtick >= axlimori(1)) & (axxtick <= (axlimori(1)+axlimori(4))));
     axyindex=find((axytick >= axlimori(2)) & (axytick <= (axlimori(2)+axlimori(5))));
     axzindex=find((axztick >= axlimori(3)) & (axztick <= (axlimori(3)+axlimori(6))));
@@ -955,7 +956,7 @@ if strcmp(get(ax,'Visible'),'on')
     else
         minor_axztick = [];
     end
-    if strcmp(get(ax,'Box'),'on')
+    if strcmp(axData.Box,'on')
         axxindex_inner = find((axxtick > axlimori(1)) & (axxtick < (axlimori(1)+axlimori(4))));
         axyindex_inner = find((axytick > axlimori(2)) & (axytick < (axlimori(2)+axlimori(5))));
         axzindex_inner = find((axztick > axlimori(3)) & (axztick < (axlimori(3)+axlimori(6))));
@@ -965,7 +966,7 @@ if strcmp(get(ax,'Visible'),'on')
         axzindex_inner = find((axztick >= axlimori(3)) & (axztick <= (axlimori(3)+axlimori(6))));
     end
     minor_log_sticks = log10(0.2:0.1:0.9);
-    if strcmp(get(ax,'TickDir'),'out')
+    if strcmp(axData.TickDir,'out')
         ticklength=-ticklength;
         valid_xsticks = 1:length(axxindex);
         valid_ysticks = 1:length(axyindex);
@@ -975,8 +976,8 @@ if strcmp(get(ax,'Visible'),'on')
         valid_ysticks = axyindex_inner;
         valid_zsticks = axzindex_inner;
     end
-    if strcmp(get(ax,'XScale'),'log')
-        axxtick = log10(get(ax,'XTick'));
+    if strcmp(axData.XScale,'log')
+        axxtick = log10(axData.XTick);
         minor_axxtick = [];
         if ~isempty(axxtick)
             all_axxtick = axxtick(1):1:(axxtick(end) + 1); 
@@ -986,8 +987,8 @@ if strcmp(get(ax,'Visible'),'on')
         end
         minor_axxtick = minor_axxtick(minor_axxtick > min(axlimx) & minor_axxtick < max(axlimx));
     end
-    if strcmp(get(ax,'YScale'),'log')
-        axytick=log10(get(ax,'YTick'));
+    if strcmp(axData.YScale,'log')
+        axytick=log10(axData.YTick);
         minor_axytick = [];
         if ~isempty(axytick)
             all_axytick = axytick(1):1:(axytick(end) + 1); 
@@ -997,8 +998,8 @@ if strcmp(get(ax,'Visible'),'on')
         end
         minor_axytick = minor_axytick(minor_axytick > min(axlimy) & minor_axytick < max(axlimy));
     end
-    if strcmp(get(ax,'ZScale'),'log')
-        axztick=log10(get(ax,'ZTick'));
+    if strcmp(axData.ZScale,'log')
+        axztick=log10(axData.ZTick);
         minor_axztick = [];
         if ~isempty(axztick)
             all_axztick = axztick(1):1:(axztick(end) + 1); 
@@ -1009,9 +1010,9 @@ if strcmp(get(ax,'Visible'),'on')
         minor_axztick = minor_axztick(minor_axztick > min(axlimz) & minor_axztick < max(axlimz));
     end
     % Draw back faces 
-    linewidth=get(ax,'LineWidth');
-    if ~strcmp(get(ax,'Color'),'none')
-        background_color = searchcolor(id,get(ax,'Color'));
+    linewidth=axData.LineWidth;
+    if ~strcmp(axData.Color,'none')
+        background_color = searchcolor(id,axData.Color);
         background_opacity = 1;
     else
         background_color = '#000000';
@@ -1028,36 +1029,36 @@ if strcmp(get(ax,'Visible'),'on')
                 gridAlpha = 1;
                 minorGridAlpha = 1;
             else
-                gridAlpha = get(ax, 'GridAlpha');
-                minorGridAlpha = get(ax, 'MinorGridAlpha');
+                gridAlpha = axData.GridAlpha;
+                minorGridAlpha = axData.MinorGridAlpha;
             end
             switch corners(k,1,p)
                 case 1 % x
                     % Draw x-grid
                     if verLessThan('matlab', '8.4.0')
-                        scolorname = get(ax, 'XColor');
+                        scolorname = axData.XColor;
                     else
-                        if strcmp(get(ax, 'GridColorMode'), 'auto')
-                            scolorname = get(ax, 'XColor');
+                        if strcmp(axData.GridColorMode, 'auto')
+                            scolorname = axData.XColor;
                         else
-                            scolorname = get(ax, 'GridColor');
+                            scolorname = axData.GridColor;
                         end
                     end
                     scolorname = searchcolor(id,scolorname);
-                    if strcmp(get(ax,'XGrid'),'on') && gridBehind
+                    if strcmp(axData.XGrid,'on') && gridBehind
                         if axlimx(1)~=axlimx(2)
                             gridLines(fid, grouplabel, axpos, x, y, scolorname, gridlinestyle, linewidth, axlimx, axxtick, axxindex_inner, selectedCorners, [2 3 4 5], gridAlpha)
-                            if strcmp(get(ax,'XTickMode'),'auto') && strcmp(get(ax,'XMinorGrid'),'on') && ~isempty(minor_axxtick)
+                            if strcmp(axData.XTickMode,'auto') && strcmp(axData.XMinorGrid,'on') && ~isempty(minor_axxtick)
                                 minorGridLines(fid, grouplabel, axpos, x, y, scolorname, minor_gridlinestyle, linewidth, axlimx, minor_axxtick, selectedCorners, [2 3 4 5], minorGridAlpha)                                
                             end
                         end
                     end
                     if projection.xyplane == false
-                        if strcmp(get(ax,'Box'),'on')
+                        if strcmp(axData.Box,'on')
                             line2svg(fid,grouplabel,axpos,[x(corners(k,2,p)) x(corners(k,3,p))],[y(corners(k,2,p)) y(corners(k,3,p))],scolorname,'-',linewidth);
                             line2svg(fid,grouplabel,axpos,[x(corners(k,4,p)) x(corners(k,5,p))],[y(corners(k,4,p)) y(corners(k,5,p))],scolorname,'-',linewidth);
                         else
-                            if strcmp(get(ax,'XGrid'),'on')
+                            if strcmp(axData.XGrid,'on')
                                 line2svg(fid,grouplabel,axpos,[x(corners(k,2,p)) x(corners(k,3,p))],[y(corners(k,2,p)) y(corners(k,3,p))],scolorname,gridlinestyle,linewidth);
                                 line2svg(fid,grouplabel,axpos,[x(corners(k,4,p)) x(corners(k,5,p))],[y(corners(k,4,p)) y(corners(k,5,p))],scolorname,gridlinestyle,linewidth);
                             end
@@ -1066,29 +1067,29 @@ if strcmp(get(ax,'Visible'),'on')
                 case 2 % y
                     % Draw y-grid
                     if verLessThan('matlab', '8.4.0')
-                        scolorname = get(ax, 'YColor');
+                        scolorname = axData.YColor;
                     else
-                        if strcmp(get(ax, 'GridColorMode'), 'auto')
-                            scolorname = get(ax, 'YColor');
+                        if strcmp(axData.GridColorMode, 'auto')
+                            scolorname = axData.YColor;
                         else
-                            scolorname = get(ax, 'GridColor');
+                            scolorname = axData.GridColor;
                         end
                     end
                     scolorname = searchcolor(id,scolorname);
-                    if strcmp(get(ax,'YGrid'),'on') && gridBehind
+                    if strcmp(axData.YGrid,'on') && gridBehind
                         if axlimy(1)~=axlimy(2)
                             gridLines(fid, grouplabel, axpos, x, y, scolorname, gridlinestyle, linewidth, axlimy, axytick, axyindex_inner, selectedCorners, [2 3 4 5], gridAlpha)
-                            if strcmp(get(ax,'YTickMode'),'auto') && strcmp(get(ax,'YMinorGrid'),'on') && ~isempty(minor_axytick)
+                            if strcmp(axData.YTickMode,'auto') && strcmp(axData.YMinorGrid,'on') && ~isempty(minor_axytick)
                                 minorGridLines(fid, grouplabel, axpos, x, y, scolorname, minor_gridlinestyle, linewidth, axlimy, minor_axytick, selectedCorners, [2 3 4 5], minorGridAlpha)                                                                
                             end
                         end
                     end
                     if projection.xyplane == false
-                        if strcmp(get(ax,'Box'),'on')
+                        if strcmp(axData.Box,'on')
                             line2svg(fid,grouplabel,axpos,[x(corners(k,2,p)) x(corners(k,3,p))],[y(corners(k,2,p)) y(corners(k,3,p))],scolorname,'-',linewidth);
                             line2svg(fid,grouplabel,axpos,[x(corners(k,4,p)) x(corners(k,5,p))],[y(corners(k,4,p)) y(corners(k,5,p))],scolorname,'-',linewidth);
                         else
-                            if strcmp(get(ax,'YGrid'),'on')
+                            if strcmp(axData.YGrid,'on')
                                 line2svg(fid,grouplabel,axpos,[x(corners(k,2,p)) x(corners(k,3,p))],[y(corners(k,2,p)) y(corners(k,3,p))],scolorname,gridlinestyle,linewidth);
                                 line2svg(fid,grouplabel,axpos,[x(corners(k,4,p)) x(corners(k,5,p))],[y(corners(k,4,p)) y(corners(k,5,p))],scolorname,gridlinestyle,linewidth);
                             end
@@ -1097,29 +1098,29 @@ if strcmp(get(ax,'Visible'),'on')
                 case 3 % z
                     % Draw z-grid
                     if verLessThan('matlab', '8.4.0')
-                        scolorname = get(ax, 'ZColor');
+                        scolorname = axData.ZColor;
                     else
-                        if strcmp(get(ax, 'GridColorMode'), 'auto')
-                            scolorname = get(ax, 'ZColor');
+                        if strcmp(axData.GridColorMode, 'auto')
+                            scolorname = axData.ZColor;
                         else
-                            scolorname = get(ax, 'GridColor');
+                            scolorname = axData.GridColor;
                         end
                     end
                     scolorname = searchcolor(id,scolorname);
-                    if strcmp(get(ax,'ZGrid'),'on') && gridBehind
+                    if strcmp(axData.ZGrid,'on') && gridBehind
                         if axlimz(1)~=axlimz(2)
                             gridLines(fid, grouplabel, axpos, x, y, scolorname, gridlinestyle, linewidth, axlimz, axztick, axzindex_inner, selectedCorners, [2 3 4 5], gridAlpha)
-                            if strcmp(get(ax,'ZTickMode'),'auto') && strcmp(get(ax,'ZMinorGrid'),'on') && ~isempty(minor_axztick)
+                            if strcmp(axData.ZTickMode,'auto') && strcmp(axData.ZMinorGrid,'on') && ~isempty(minor_axztick)
                                 minorGridLines(fid, grouplabel, axpos, x, y, scolorname, minor_gridlinestyle, linewidth, axlimz, minor_axztick, selectedCorners, [2 3 4 5], minorGridAlpha)                                                                
                             end
                         end
                     end
                     if projection.xyplane == false
-                        if strcmp(get(ax,'Box'),'on')
+                        if strcmp(axData.Box,'on')
                             line2svg(fid,grouplabel,axpos,[x(corners(k,2,p)) x(corners(k,3,p))],[y(corners(k,2,p)) y(corners(k,3,p))],scolorname,'-',linewidth);
                             line2svg(fid,grouplabel,axpos,[x(corners(k,4,p)) x(corners(k,5,p))],[y(corners(k,4,p)) y(corners(k,5,p))],scolorname,'-',linewidth);
                         else
-                            if strcmp(get(ax,'ZGrid'),'on')
+                            if strcmp(axData.ZGrid,'on')
                                 line2svg(fid,grouplabel,axpos,[x(corners(k,2,p)) x(corners(k,3,p))],[y(corners(k,2,p)) y(corners(k,3,p))],scolorname,gridlinestyle,linewidth);
                                 line2svg(fid,grouplabel,axpos,[x(corners(k,4,p)) x(corners(k,5,p))],[y(corners(k,4,p)) y(corners(k,5,p))],scolorname,gridlinestyle,linewidth);
                             end
@@ -1130,27 +1131,27 @@ if strcmp(get(ax,'Visible'),'on')
     end
 end
 fprintf(fid,'    <g>\n');
-axchild=get(ax,'Children');
+axchild=axData.Children;
 if ~verLessThan('matlab','8.4.0')
     % Matlab h2 engine
     axchild = [axchild; ax.Title; ax.XLabel; ax.YLabel; ax.ZLabel];
 end
 group = axchild2svg(fid,id,axIdString,ax,group,paperpos,axchild,axpos,groupax,projection,boundingBoxAxes);
 fprintf(fid,'    </g>\n');
-if strcmp(get(ax,'Visible'),'on')
+if strcmp(axData.Visible,'on')
     fprintf(fid,'    <g>\n');
     % Search axis for labeling
     if projection.xyplane
         [~, x_axis_point_index_top] = min(y);
         [~, x_axis_point_index_bottom] = max(y);
-        if strcmp(get(ax,'Box'),'on')
-            if strcmp(get(ax,'XAxisLocation'),'top')
+        if strcmp(axData.Box,'on')
+            if strcmp(axData.XAxisLocation,'top')
                 x_axis_point_index = [x_axis_point_index_top x_axis_point_index_bottom];
             else
                 x_axis_point_index = [x_axis_point_index_bottom x_axis_point_index_top];
             end
         else
-            if strcmp(get(ax,'XAxisLocation'),'top')
+            if strcmp(axData.XAxisLocation,'top')
                 x_axis_point_index = x_axis_point_index_top;
             else
                 x_axis_point_index = x_axis_point_index_bottom;
@@ -1158,14 +1159,14 @@ if strcmp(get(ax,'Visible'),'on')
         end
         [~, y_axis_point_index_left] = min(x);
         [~, y_axis_point_index_right] = max(x);
-        if strcmp(get(ax,'Box'),'on')
-            if strcmp(get(ax,'YAxisLocation'),'right')
+        if strcmp(axData.Box,'on')
+            if strcmp(axData.YAxisLocation,'right')
                 y_axis_point_index = [y_axis_point_index_right y_axis_point_index_left];
             else
                 y_axis_point_index = [y_axis_point_index_left y_axis_point_index_right];
             end
         else
-            if strcmp(get(ax,'YAxisLocation'),'right')
+            if strcmp(axData.YAxisLocation,'right')
                 y_axis_point_index = y_axis_point_index_right;
             else
                 y_axis_point_index = y_axis_point_index_left;
@@ -1185,33 +1186,33 @@ if strcmp(get(ax,'Visible'),'on')
             switch corners(k,1,p)
                 case 1 % x
                     % Draw x-grid
-                    scolorname = searchcolor(id,get(ax,'XColor'));
-                    if strcmp(get(ax,'XGrid'),'on') && gridBehind == false
+                    scolorname = searchcolor(id,axData.XColor);
+                    if strcmp(axData.XGrid,'on') && gridBehind == false
                         if axlimx(1)~=axlimx(2)
                             gridLines(fid, grouplabel, axpos, x, y, scolorname, gridlinestyle, linewidth, axlimx, axxtick, axxindex_inner, selectedCorners, [2 3 4 5])
-                            if strcmp(get(ax,'XTickMode'),'auto') && strcmp(get(ax,'XMinorGrid'),'on') && ~isempty(minor_axxtick)
+                            if strcmp(axData.XTickMode,'auto') && strcmp(axData.XMinorGrid,'on') && ~isempty(minor_axxtick)
                                 minorGridLines(fid, grouplabel, axpos, x, y, scolorname, minor_gridlinestyle, linewidth, axlimx, minor_axxtick, selectedCorners, [2 3 4 5])
                             end
                         end
                     end
                 case 2 % y
                     % Draw y-grid
-                    scolorname = searchcolor(id,get(ax,'YColor'));
-                    if strcmp(get(ax,'YGrid'),'on') && gridBehind == false
+                    scolorname = searchcolor(id,axData.YColor);
+                    if strcmp(axData.YGrid,'on') && gridBehind == false
                         if axlimy(1)~=axlimy(2)
                             gridLines(fid, grouplabel, axpos, x, y, scolorname, gridlinestyle, linewidth, axlimy, axytick, axyindex_inner, selectedCorners, [2 3 4 5])
-                            if strcmp(get(ax,'YTickMode'),'auto') && strcmp(get(ax,'YMinorGrid'),'on') && ~isempty(minor_axytick)
+                            if strcmp(axData.YTickMode,'auto') && strcmp(axData.YMinorGrid,'on') && ~isempty(minor_axytick)
                                 minorGridLines(fid, grouplabel, axpos, x, y, scolorname, minor_gridlinestyle, linewidth, axlimy, minor_axytick, selectedCorners, [2 3 4 5])                                                                
                             end
                         end
                     end
                 case 3 % z
                     % Draw z-grid
-                    scolorname = searchcolor(id,get(ax,'ZColor'));
-                    if strcmp(get(ax,'ZGrid'),'on') && gridBehind == false
+                    scolorname = searchcolor(id,axData.ZColor);
+                    if strcmp(axData.ZGrid,'on') && gridBehind == false
                         if axlimz(1)~=axlimz(2)
                             gridLines(fid, grouplabel, axpos, x, y, scolorname, gridlinestyle, linewidth, axlimz, axztick, axzindex_inner, selectedCorners, [2 3 4 5])
-                            if strcmp(get(ax,'ZTickMode'),'auto') && strcmp(get(ax,'ZMinorGrid'),'on') && ~isempty(minor_axztick)
+                            if strcmp(axData.ZTickMode,'auto') && strcmp(axData.ZMinorGrid,'on') && ~isempty(minor_axztick)
                                 minorGridLines(fid, grouplabel, axpos, x, y, scolorname, minor_gridlinestyle, linewidth, axlimz, minor_axztick, selectedCorners, [2 3 4 5])                                                                
                             end
                         end
@@ -1219,16 +1220,16 @@ if strcmp(get(ax,'Visible'),'on')
             end
         end
     end
-    scolorname=searchcolor(id,get(ax,'XColor'));
+    scolorname=searchcolor(id,axData.XColor);
     % Draw 'box' of x-axis
     if projection.xyplane == false
-        if strcmp(get(ax,'Box'),'on')
+        if strcmp(axData.Box,'on')
             edge_line_index = [edge_opposite(most_back_edge_index) edge_neighbours(edge_opposite(most_back_edge_index),1)];
             line2svg(fid,grouplabel,axpos,x(edge_line_index),y(edge_line_index),scolorname,'-',linewidth)
         end
     end
     % Draw x-tick labels
-    if (strcmp(get(ax,'XTickLabelMode'),'auto') && strcmp(get(ax,'XScale'),'log'))
+    if (strcmp(axData.XTickLabelMode,'auto') && strcmp(axData.XScale,'log'))
         exponent = 1;
     else
         exponent = 0;
@@ -1250,7 +1251,7 @@ if strcmp(get(ax,'Visible'),'on')
             frontTicks(fid, grouplabel, axpos, x, y, scolorname, linewidth, ...
                 axxtick, x_axis_point_index, edge_neighbours, [2 1 1], ...
                 valid_xsticks,  ticklength, tick_ratio, lim, true);
-            if strcmp(get(ax,'XTickMode'),'auto') && (strcmp(get(ax,'XMinorGrid'),'on') || strcmp(get(ax,'XScale'),'log')) && ~isempty(minor_axxtick)
+            if strcmp(axData.XTickMode,'auto') && (strcmp(axData.XMinorGrid,'on') || strcmp(axData.XScale,'log')) && ~isempty(minor_axxtick)
                 frontTicks(fid, grouplabel, axpos, x, y, scolorname, linewidth, ...
                     minor_axxtick, x_axis_point_index, edge_neighbours, [2 1 1], ...
                     1:length(minor_axxtick),  0.5 * ticklength, tick_ratio, lim, false);
@@ -1265,10 +1266,10 @@ if strcmp(get(ax,'Visible'),'on')
                 % Note: 3D plot do not support the property XAxisLocation
                 % setting 'top'.
                 [angle, align] = improvedXLabel(ax, 0, 'Center');
-                if (strcmp(get(ax,'XTickLabelMode'),'manual'))
+                if (strcmp(axData.XTickLabelMode,'manual'))
                     axlabelx = axlabelx(axxindex,:);
                 end
-                if strcmp(get(ax,'XAxisLocation'),'top') && (projection.xyplane == true)
+                if strcmp(axData.XAxisLocation,'top') && (projection.xyplane == true)
                     for i = 1:length(axxindex)
                         label2svg(fid,grouplabel,axpos,ax,xg_label_end(i),yg_label_end(i),convertString(axlabelx(i,:)),align,angle,'bottom',1,paperpos,scolorname,exponent);
                     end
@@ -1280,16 +1281,16 @@ if strcmp(get(ax,'Visible'),'on')
             end
         end
     end
-    scolorname=searchcolor(id,get(ax,'YColor'));
+    scolorname=searchcolor(id,axData.YColor);
     % Draw 'box' of y-axis
     if projection.xyplane == false
-        if strcmp(get(ax,'Box'),'on')
+        if strcmp(axData.Box,'on')
             edge_line_index = [edge_opposite(most_back_edge_index) edge_neighbours(edge_opposite(most_back_edge_index),2)];
             line2svg(fid,grouplabel,axpos,x(edge_line_index),y(edge_line_index),scolorname,'-',linewidth)
         end
     end
     % Draw y-tick labels
-    if (strcmp(get(ax,'YTickLabelMode'),'auto') && strcmp(get(ax,'YScale'),'log'))
+    if (strcmp(axData.YTickLabelMode,'auto') && strcmp(axData.YScale,'log'))
         exponent = 1;
     else
         exponent = 0;
@@ -1311,7 +1312,7 @@ if strcmp(get(ax,'Visible'),'on')
             frontTicks(fid, grouplabel, axpos, x, y, scolorname, linewidth, ...
                 axytick, y_axis_point_index, edge_neighbours, [1 2 2], ...
                 valid_ysticks,  ticklength, tick_ratio, lim, true);
-            if strcmp(get(ax,'YTickMode'),'auto') && (strcmp(get(ax,'YMinorGrid'),'on') || strcmp(get(ax,'YScale'),'log')) && ~isempty(minor_axytick)
+            if strcmp(axData.YTickMode,'auto') && (strcmp(axData.YMinorGrid,'on') || strcmp(axData.YScale,'log')) && ~isempty(minor_axytick)
                 frontTicks(fid, grouplabel, axpos, x, y, scolorname, linewidth, ...
                     minor_axytick, y_axis_point_index, edge_neighbours, [1 2 2], ...
                     1:length(minor_axytick), 0.5 * ticklength, tick_ratio, lim, false);
@@ -1325,11 +1326,11 @@ if strcmp(get(ax,'Visible'),'on')
                 end
                 % Note: 3D plot do not support the property YAxisLocation
                 % setting 'right'.
-                if (strcmp(get(ax,'YTickLabelMode'),'manual'))
+                if (strcmp(axData.YTickLabelMode,'manual'))
                     axlabely = axlabely(axyindex,:);
                 end
                 if (projection.xyplane == true)
-                    if strcmp(get(ax,'YAxisLocation'),'right')
+                    if strcmp(axData.YAxisLocation,'right')
                         [angle, align] = improvedYLabel(ax, 0, 'Left');
                         for i = 1:length(axyindex)
                             label2svg(fid,grouplabel,axpos,ax,xg_label_end(i),yg_label_end(i),convertString(axlabely(i,:)),align,angle,'middle',1,paperpos,scolorname,exponent);
@@ -1348,15 +1349,15 @@ if strcmp(get(ax,'Visible'),'on')
             end
         end
     end
-    scolorname=searchcolor(id,get(ax,'ZColor'));
+    scolorname=searchcolor(id,axData.ZColor);
     % Draw 'box' of z-axis
     if projection.xyplane == false
-        if strcmp(get(ax,'Box'),'on')
+        if strcmp(axData.Box,'on')
             edge_line_index = [edge_opposite(most_back_edge_index) edge_neighbours(edge_opposite(most_back_edge_index),3)];
             line2svg(fid,grouplabel,axpos,x(edge_line_index),y(edge_line_index),scolorname,'-',linewidth)
         end
     end
-    if (strcmp(get(ax,'ZTickLabelMode'),'auto') && strcmp(get(ax,'ZScale'),'log'))
+    if (strcmp(axData.ZTickLabelMode,'auto') && strcmp(axData.ZScale,'log'))
         exponent = 1;
     else
         exponent = 0;
@@ -1394,7 +1395,7 @@ if strcmp(get(ax,'Visible'),'on')
                     % behavior of Matlab
                     axlabelz = repmat(axlabelz, length(axzindex), 1);
                 end
-                if (strcmp(get(ax,'ZTickLabelMode'),'manual'))
+                if (strcmp(axData.ZTickLabelMode,'manual'))
                     axlabelz = axlabelz(axzindex,:);
                 end
                 for i = 1:length(axzindex)
