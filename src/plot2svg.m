@@ -3198,7 +3198,7 @@ rotMat(2,1) =  sin(angle);
 rotMat(2,2) =  cos(angle);
 CTM = transMat*rotMat;
 transformStr = sprintf(' transform="matrix(%0.3f,%0.3f,%0.3f,%0.3f,%0.3f,%0.3f)"', CTM(1,1), CTM(2,1), CTM(1,2), CTM(2,2), CTM(1,3), CTM(2,3));
-fprintf(fid,'  <text %s x="%0.3f" y="%0.3f" font-family="%s" text-anchor="%s" font-size="%0.0fpt"%s%s fill="%s" >', transformStr, 0, 0, textfontname, anchor, textfontsize, fweight, fangle, font_color);
+fprintf(fid,'  <text %s x="%0.3f" y="%0.3f" font-family="%s" text-anchor="%s" font-size="%0.0fpt"%s%s fill="%s" xml:space="preserve">', transformStr, 0, 0, textfontname, anchor, textfontsize, fweight, fangle, font_color);
 fprintf(fid,'%s',tex);
 fprintf(fid,'</text>\n'); 
 
