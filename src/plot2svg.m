@@ -786,7 +786,7 @@ function [group, ax]=legend2svg(fid, id, ax, group, paperpos)
     [group, ax] = axes2svg(fid, id, ax, group, paperpos);
 
 function [group, ax]=annotationpane2svg(fid, id, ax, group, paperpos)
-    warning('Plot2SVG:AnnotationPaneUnsupported', 'The new AnnotationPane datatype is currenty unsupported and will not be included in the SVG!');
+    warning('Plot2SVG:AnnotationPaneUnsupported', 'The new AnnotationPane datatype is currenty partially supported. Some objects may not render properly!');
     [group, ax] = axes2svg(fid, id, ax, group, paperpos);
     
     
@@ -2144,6 +2144,9 @@ for i=length(axchild):-1:1
         else
             facecolorname = searchcolor(id, facecolor);       
         end
+        if strcmp(linestyle, 'none')
+            linewidth = 0;
+        end
         if ischar(edgecolor)
             if ~strcmp(edgecolor,'none')
                 error('Illegal edge color for text.');
@@ -2641,11 +2644,23 @@ if ~realAxes
 end
 
 idData = get(id);
-if isgraphics(id, 'textboxshape')
-    idData.Rotation = 0;
-end
 originalTextUnits=idData.Units;
 originalTextPosition = idData.Position;
+if isgraphics(id, 'textboxshape')
+    idData.Rotation = 0;
+    switch idData.HorizontalAlignment
+        case 'center'
+            idData.Position(1) = idData.Position(1) + idData.Position(3)/2;
+        case 'right'
+            idData.Position(1) = idData.Position(1) + idData.Position(3);
+    end
+    switch idData.VerticalAlignment
+        case 'middle'
+            idData.Position(2) = idData.Position(2) + idData.Position(4)/2;
+        case 'top'
+            idData.Position(2) = idData.Position(2) + idData.Position(4);
+    end 
+end
 if PLOT2SVG_globals.octave
 	set(id,'Units','data');
 elseif isgraphics(id, 'textboxshape')
