@@ -1540,6 +1540,16 @@ if ~realAxes
     axData.DataAspectRatio = [1 1 2];
     axData.DataAspectRatioMode = 'auto';
 end
+areaStack = false;
+baseNum = [];
+if ~verLessThan('matlab', '8.4.0')
+    areas = findobj(ax, 'Type', 'area');
+    if ~isempty(areas)
+        numPeers = getappdata(areas(1), 'NumPeers');
+        areaStack = ~isempty(numPeers) && numPeers == numel(areas);
+        baseNum = [];
+    end
+end
 for i=length(axchild):-1:1
     if strcmp(get(axchild(i), 'Visible'), 'off')
         % do nothing
@@ -1909,6 +1919,162 @@ for i=length(axchild):-1:1
                 end
             end
         end
+        fprintf(fid,'</g>\n');
+    elseif strcmp(get(axchild(i),'Type'),'area')
+        flat_shading = 1;
+        cmap=get(id,'Colormap');
+        axChildData = get(axchild(i));
+        pointc = axchild(i).getColorAlphaDataExtents;
+        pointc = pointc(1);
+        pointc = pointc * ones(size(axChildData.XData));
+        % Scale color if scaled color mapping is turned on
+        if strcmp(axChildData.FaceColor,'scaled')
+            clim=axData.CLim;
+            pointc=(pointc-clim(1))/(clim(2)-clim(1))*(size(cmap,1)-1)+1;
+        end
+        baseValue = axChildData.BaseValue;
+        % Limit index to smallest or biggest color index
+        pointc=max(pointc,1);
+        pointc=min(pointc,size(cmap,1));
+        face_opacity = 1.0;
+        edge_opacity = 1.0;
+        linestyle = get(axchild(i),'LineStyle');
+        linewidth = get(axchild(i),'LineWidth');
+        if areaStack
+            if isempty(baseNum) || numel(baseNum) ~= numel(axChildData.XData)
+                points=[axChildData.XData; axChildData.YData];
+                points = [points [flip(axChildData.XData); baseValue*ones(size(axChildData.XData))]];
+                baseNum = axChildData.YData;
+            else
+                points=[axChildData.XData; axChildData.YData + baseNum];
+                points = [points [flip(axChildData.XData); flip(baseNum)]];
+                baseNum = baseNum + axChildData.YData;
+            end
+        else
+            points = [points [points(1,end) points(1,1); baseValue baseValue]];
+        end
+        if strcmp(axData.XScale,'log')
+            points(1,:)=log10(points(1,:));
+        end
+        if strcmp(axData.YScale,'log')
+            points(2,:)=log10(points(2,:));
+        end
+        % TODO LogZ
+        if size(points,1)==2
+            [x,y,z] = project(points(1,:),points(2,:),zeros(size(points(1,:))),projection);    
+        else
+            [x,y,z] = project(points(1,:),points(2,:),points(3,:),projection);
+        end
+        x = (x*axpos(3)+axpos(1))*paperpos(3);
+        y = (1-(y*axpos(4)+axpos(2)))*paperpos(4);
+%         faces = axChildData.Faces;
+%         face_index = 1:size(faces,1);
+%         if size(points,1)==3;
+%             [~,face_index]=sort(sum(z(faces(:,:)),2));
+%             faces=faces(face_index,:);
+%         end
+        markerOverlap = 0;
+        if ~strcmp(linestyle, 'none')
+            markerOverlap = max(markerOverlap, convertunit(linewidth*0.5, 'points', 'pixels', axpos(4)));    
+        end
+        boundingBoxElement = [min(x)-markerOverlap min(y)-markerOverlap max(x)-min(x)+2*markerOverlap max(y)-min(y)+2*markerOverlap];
+        [filterString, boundingBox] = filter2svg(fid, axchild(i), boundingBoxAxes, boundingBoxElement);
+        if strcmp(get(axchild(i),'Clipping'),'on')
+            clippingIdString = clipping2svg(fid, axchild(i), ax, paperpos, axpos, projection, axIdString);
+            fprintf(fid,'<g id="%s" clip-path="url(#%s)" %s>\n', createId, clippingIdString, filterString);
+        else
+            fprintf(fid,'<g id="%s" %s>\n', createId, filterString);
+        end
+        if ~isempty(filterString)
+            % Workaround for Inkscape filter bug
+            fprintf(fid,'<rect x="%0.3f" y="%0.3f" width="%0.3f" height="%0.3f" fill="none" stroke="none" />\n', boundingBox(1), boundingBox(2), boundingBox(3), boundingBox(4));
+        end
+%         for p = 1:size(faces,1)
+            if ischar(get(axchild(i),'FaceColor'))
+                if strcmp(get(axchild(i),'FaceColor'),'texturemap')
+                    facecolorname='none';   % TO DO: texture map
+                elseif strcmp(get(axchild(i),'FaceColor'),'none')
+                    facecolorname='none';
+                else
+                    if size(pointc,1)==1
+                        facecolor = pointc;    
+                    elseif size(pointc,1)==size(faces,1)
+                        if strcmp(get(axchild(i),'FaceColor'),'flat')
+                            facecolor = pointc(1);
+                        else
+                            facecolor = pointc(1);
+                            cdata = pointc(1);     % TO DO: color interpolation
+                            flat_shading = 0;
+                        end
+                    elseif size(pointc,1)==size(points,2)
+                        if strcmp(get(axchild(i),'FaceColor'),'flat')
+                            facecolor = pointc(1);
+                        else
+                            facecolor = pointc(1);
+                            cdata = pointc(1);
+                            flat_shading = 0;
+                        end
+                    else
+                        error('Unsupported color handling for patches.');    
+                    end
+                    if ~isnan(facecolor)
+                        if size(facecolor,2)==1
+                            facecolorname = ['#' colorname(ceil(facecolor),:)];
+                        else
+                            if strcmp(get(axchild(i),'FaceColor'),'flat')  % Bugfix 27.01.2008
+                                facecolorname = searchcolor(id,facecolor/64);
+                            else
+                                facecolorname = searchcolor(id,facecolor);    
+                            end
+                        end
+                    else
+                        facecolorname='none';
+                    end
+                end
+            else
+                facecolorname = searchcolor(id,get(axchild(i),'FaceColor'));       
+            end
+            if ischar(get(axchild(i),'EdgeColor'))
+                if strcmp(get(axchild(i),'EdgeColor'),'none')
+                    edgecolorname = 'none';
+                else
+                    if size(pointc,1)==1
+                        edgecolor = pointc;    
+                    elseif size(pointc,1)==size(faces,1)
+                        edgecolor = pointc(1);
+                    elseif size(pointc,1)==size(points,2)
+                        if strcmp(get(axchild(i),'EdgeColor'),'flat')
+                            edgecolor = pointc(1);
+                        else
+                            edgecolor = pointc(1);     % TO DO: color interpolation
+                        end
+                    else
+                        error('Unsupported color handling for patches.');    
+                    end
+                    if ~isnan(edgecolor)
+                        if size(edgecolor,2)==1
+                            edgecolorname = ['#' colorname(ceil(edgecolor),:)];
+                        else
+                            if strcmp(get(axchild(i),'EdgeColor'),'flat')   % Bugfix 27.01.2008
+                                edgecolorname = searchcolor(id,edgecolor/64);
+                            else
+                                edgecolorname = searchcolor(id,edgecolor);    
+                            end
+                        end
+                    else
+                        edgecolorname = 'none';
+                    end
+                end
+            else
+                edgecolorname = searchcolor(id,get(axchild(i),'EdgeColor'));       
+            end
+%             patch2svg(fid, group, axpos, x, y, facecolorname, linestyle, linewidth, edgecolorname, face_opacity, edge_opacity, closed)
+%         end
+%         facecolorname = searchcolor(id, axChildData.FaceColor);
+%         edgecolorname = searchcolor(id, axChildData.EdgeColor);
+        closed = true;
+        
+        patch2svg(fid, group, axpos, x, y, facecolorname, linestyle, linewidth, edgecolorname, face_opacity, edge_opacity, closed)
         fprintf(fid,'</g>\n');
     elseif strcmp(get(axchild(i),'Type'),'surface')
         flat_shading = 1;
