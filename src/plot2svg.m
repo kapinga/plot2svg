@@ -782,7 +782,7 @@ end
 
 
 function [group, ax]=legend2svg(fid, id, ax, group, paperpos)
-    warning('Plot2SVG:LegendUnsupported', 'The new legend datatype is currenty unsupported and will not be included in the SVG!');
+%     warning('Plot2SVG:LegendUnsupported', 'The new legend datatype is currenty unsupported and will not be included in the SVG!');
     [group, ax] = axes2svg(fid, id, ax, group, paperpos);
 
 function [group, ax]=annotationpane2svg(fid, id, ax, group, paperpos)
@@ -808,21 +808,11 @@ realAxes = isfield(axData, 'XLim');
 if isgraphics(ax, 'Legend')
     legProps = axData;
     % Find the axes that this legend is associated with
-    allAxes = findobj(ax.Parent, 'Type', 'axes');
-    for i=1:numel(allAxes)
-        legAx = allAxes(i);
-        [legH, icons] = legend(legAx);
-        if ~isempty(icons)
-            % If icons isn't empty, we accidentally created a legend for an
-            % axes!
-            delete(legH);
-        else
-            if legH == ax
-                % if legH is ax, then legAx must be the "host" axes
-                break;
-            end
-        end
-    end
+    % The parent figure will keep the legend immediately above the axes the
+    % legend is tied to.
+    children = get(ax.Parent, 'Children');
+    legIX = find(children == ax);
+    legAx = children(legIX+1);
     
     legStrings = legProps.String;
     % Note that this will delete any custom context menu specified for the
@@ -862,11 +852,11 @@ if ~realAxes
         axData.Box = 'off';
     end
     if strcmp(axData.Box, 'on')
-        axData.Color = [1 1 1];
-        axData.LineWidth = 1.5;
+%         axData.Color = [1 1 1];
+%         axData.LineWidth = 1.5;
         axData.XColor = axData.EdgeColor;
         axData.YColor = axData.EdgeColor;
-        axData.ZColor = [0 0 0];
+        axData.ZColor = axData.EdgeColor;
     else
         axData.Color = 'none';
         axData.LineWidth = 0;
@@ -1364,7 +1354,7 @@ if strcmp(axData.Visible,'on')
             frontTicks(fid, grouplabel, axpos, x, y, scolorname, linewidth, ...
                 axxtick, x_axis_point_index, edge_neighbours, [2 1 1], ...
                 valid_xsticks,  ticklength, tick_ratio, lim, true);
-            if strcmp(axData.XTickMode,'auto') && (strcmp(axData.XMinorGrid,'on') || strcmp(axData.XScale,'log')) && ~isempty(minor_axxtick)
+            if strcmp(axData.XTickMode,'auto') && (strcmp(axData.XMinorTick,'on') || strcmp(axData.XScale,'log')) && ~isempty(minor_axxtick)
                 frontTicks(fid, grouplabel, axpos, x, y, scolorname, linewidth, ...
                     minor_axxtick, x_axis_point_index, edge_neighbours, [2 1 1], ...
                     1:length(minor_axxtick),  0.5 * ticklength, tick_ratio, lim, false);
@@ -1425,7 +1415,7 @@ if strcmp(axData.Visible,'on')
             frontTicks(fid, grouplabel, axpos, x, y, scolorname, linewidth, ...
                 axytick, y_axis_point_index, edge_neighbours, [1 2 2], ...
                 valid_ysticks,  ticklength, tick_ratio, lim, true);
-            if strcmp(axData.YTickMode,'auto') && (strcmp(axData.YMinorGrid,'on') || strcmp(axData.YScale,'log')) && ~isempty(minor_axytick)
+            if strcmp(axData.YTickMode,'auto') && (strcmp(axData.YMinorTick,'on') || strcmp(axData.YScale,'log')) && ~isempty(minor_axytick)
                 frontTicks(fid, grouplabel, axpos, x, y, scolorname, linewidth, ...
                     minor_axytick, y_axis_point_index, edge_neighbours, [1 2 2], ...
                     1:length(minor_axytick), 0.5 * ticklength, tick_ratio, lim, false);
