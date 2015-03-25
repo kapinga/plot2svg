@@ -1669,6 +1669,99 @@ for i=length(axchild):-1:1
         animation2svg(fid, axchild(i));
         % close the line group
         fprintf(fid,'</g>\n');
+            case 'scatter'
+%         elseif strcmp(axchildData.Type, 'scatter')
+                linewidth=axchildData.LineWidth;
+                
+                marker=axchildData.Marker;
+                markeredgecolor=axchildData.MarkerEdgeColor;
+                markerfacecolor=axchildData.MarkerFaceColor;
+                
+                linex = axchildData.XData;
+                linex = linex(:)'; % Octave stores the data in a column vector
+                if strcmp(axData.XScale,'log')
+                    linex(linex<=0) = NaN;
+                    linex=log10(linex);
+                end
+                
+                liney=axchildData.YData;
+                liney = liney(:)'; % Octave stores the data in a column vector        
+                if strcmp(axData.YScale,'log')
+                    liney(liney<=0) = NaN;
+                    liney=log10(liney);
+                end
+                
+                linez=axchildData.ZData;
+                linez = linez(:)'; % Octave stores the data in a column vector        
+                if isempty(linez)
+                    linez = zeros(size(linex));    
+                end
+                if strcmp(axData.ZScale,'log')
+                    linez(linez<=0) = NaN;
+                    linez=log10(linez);
+                end
+                
+                [x,y,~] = project(linex,liney,linez,projection);
+                x = (x*axpos(3)+axpos(1))*paperpos(3);
+                y = (1-(y*axpos(4)+axpos(2)))*paperpos(4);
+                markerOverlap = 0;
+        %         if ~strcmp(marker, 'none')
+        %             markerOverlap = max(markerOverlap, convertunit(markersize, 'points', 'pixels', axpos(4)));    
+        %         end
+        
+                boundingBoxElement = [min(x)-markerOverlap min(y)-markerOverlap max(x)-min(x)+2*markerOverlap max(y)-min(y)+2*markerOverlap];
+                [filterString, boundingBox] = filter2svg(fid, axchild(i), boundingBoxAxes, boundingBoxElement);
+                % put a line into a group with its markers
+                if strcmp(axchildData.Clipping,'on')
+                    clippingIdString = clipping2svg(fid, axchild(i), ax, paperpos, axpos, projection, axIdString);
+                    fprintf(fid,'<g id="%s" clip-path="url(#%s)" %s>\n', createId, clippingIdString, filterString);
+                else
+                    fprintf(fid,'<g id="%s" %s>\n', createId, filterString);
+                end
+                if ~isempty(filterString)
+                    % Workaround for Inkscape filter bug
+                    fprintf(fid,'<rect x="%0.3f" y="%0.3f" width="%0.3f" height="%0.3f" fill="none" stroke="none" />\n', boundingBox(1), boundingBox(2), boundingBox(3), boundingBox(4));
+                end
+                if ~strcmp(marker, 'none')
+                    cmap = colormap(ax);
+                    clim = axData.CLim;
+                    cAxis = linspace(clim(1), clim(2), size(cmap,1));
+                    cData = axchildData.CData;
+                    cData = max(cData, clim(1));
+                    cData = min(cData, clim(2));
+                    sData = axchildData.SizeData;
+                    if ~ischar(markeredgecolor)
+                        markeredgecolor=searchcolor(id,markeredgecolor);
+                    elseif strcmp(markeredgecolor, 'flat') && all(size(cData) == [1 3])
+                        markeredgecolor=searchcolor(id,cData);
+                    end
+                    if ~ischar(markerfacecolor)
+                        markerfacecolor=searchcolor(id,markerfacecolor);
+                    elseif strcmp(markerfacecolor, 'flat') && all(size(cData) == [1 3])
+                        markerfacecolor=searchcolor(id,cData);
+                    end
+                    for markI=1:numel(x)
+                        if strcmp(markeredgecolor, 'flat')
+                            markeredgecolorname = searchcolor(id, interp1(cAxis, cmap, cData(markI)));
+                        else
+                            markeredgecolorname = markeredgecolor;
+                        end
+                        if strcmp(markerfacecolor, 'flat')
+                            markerfacecolorname = searchcolor(id, interp1(cAxis, cmap, cData(markI)));
+                        else
+                            markerfacecolorname = markerfacecolor;
+                        end
+                        if numel(sData) > 1
+                            markersize = sqrt(sData(markI));
+                        else
+                            markersize = sqrt(sData);
+                        end
+                        group = marker2svg(fid,group,axpos,x(markI),y(markI),marker,markersize,markeredgecolorname,markerfacecolorname,linewidth,linex,liney);
+                    end
+                end
+                animation2svg(fid, axchild(i));
+                % close the line group
+                fprintf(fid,'</g>\n');
             case 'contour'
     %         elseif strcmp(axchildData.Type,'contour')
         clim = axData.CLim;
