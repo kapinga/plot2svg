@@ -1558,7 +1558,11 @@ for i=length(axchild):-1:1
     axchildData = get(axchild(i));
     if strcmp(axchildData.Visible, 'off')
         % do nothing
-    elseif strcmp(get(axchild(i),'Type'),'line')
+    else
+        switch axchildData.Type
+            case 'line'
+%         if strcmp(axchildData.Type,'line')
+        %         axchildData = get(axchild(i));
                 scolorname=searchcolor(id,axchildData.Color);
                 linestyle=axchildData.LineStyle;
                 linewidth=axchildData.LineWidth;
@@ -1657,7 +1661,8 @@ for i=length(axchild):-1:1
         animation2svg(fid, axchild(i));
         % close the line group
         fprintf(fid,'</g>\n');
-    elseif strcmp(get(axchild(i),'Type'),'contour')
+            case 'contour'
+    %         elseif strcmp(axchildData.Type,'contour')
         clim = axData.CLim;
         cmap = get(id,'Colormap');
                 c = axchildData.ContourMatrix;
@@ -1708,7 +1713,8 @@ for i=length(axchild):-1:1
             patch2svg(fid, group, axpos, x, y, facecolorname, linestyle, linewidth, edgecolorname, face_opacity, edge_opacity, closed)
             index = index+c(2,index)+1;
         end
-    elseif strcmp(get(axchild(i),'Type'),'patch')
+            case 'patch'
+%         elseif strcmp(axchildData.Type,'patch')
         flat_shading = 1;
         cmap=get(id,'Colormap');
                 pointc = axchildData.FaceVertexCData;
@@ -1925,7 +1931,8 @@ for i=length(axchild):-1:1
             end
         end
         fprintf(fid,'</g>\n');
-    elseif strcmp(get(axchild(i),'Type'),'area')
+            case 'area'
+%         elseif strcmp(axchildData.Type,'area')
         flat_shading = 1;
         cmap=get(id,'Colormap');
         %         axChildData = get(axchild(i));
@@ -2082,7 +2089,8 @@ for i=length(axchild):-1:1
         
         patch2svg(fid, group, axpos, x, y, facecolorname, linestyle, linewidth, edgecolorname, face_opacity, edge_opacity, closed)
         fprintf(fid,'</g>\n');
-    elseif strcmp(get(axchild(i),'Type'),'surface')
+            case 'surface'
+%         elseif strcmp(axchildData.Type,'surface')
         flat_shading = 1;
         cmap=get(id,'Colormap');
         [faces,points,pointc,alpha]=surface2patch(axchild(i));
@@ -2242,7 +2250,8 @@ for i=length(axchild):-1:1
             end
         end
         fprintf(fid,'</g>\n');
-    elseif strcmp(get(axchild(i),'Type'),'rectangle')
+            case 'rectangle'
+%         elseif strcmp(axchildData.Type,'rectangle')
                 scolorname = searchcolor(id,axchildData.EdgeColor);
                 fcolorname = searchcolor(id,axchildData.FaceColor);
                 linewidth = axchildData.LineWidth;
@@ -2291,7 +2300,8 @@ for i=length(axchild):-1:1
             rect(1), rect(2), rect(3), rect(4), curvature(1), curvature(2), fcolorname, scolorname, linewidth, pattern);
         % close the rectangle group
         fprintf(fid,'</g>\n');
-    elseif strcmp(get(axchild(i),'Type'),'text') || strcmp(get(axchild(i), 'Type'), 'textboxshape')
+            case {'text', 'textboxshape'}
+%         elseif strcmp(axchildData.Type,'text') || strcmp(axchildData.Type, 'textboxshape')
         axchildData = get(axchild(i));
         if isgraphics(axchild(i), 'textboxshape')
             axchildData.Extent = axchildData.Position;
@@ -2358,7 +2368,8 @@ for i=length(axchild):-1:1
         end
         text2svg(fid,1,axpos,paperpos,axchild(i),ax,projection)
         fprintf(fid,'</g>\n');
-    elseif strcmp(get(axchild(i),'Type'),'image')
+            case 'image'
+%         elseif strcmp(axchildData.Type,'image')
         cmap=get(id,'Colormap');
                 pointx=axchildData.XData;
                 pointy=axchildData.YData;
@@ -2501,7 +2512,8 @@ for i=length(axchild):-1:1
             fprintf(fid,'<image x="%0.3f" y="%0.3f" width="%0.3f" height="%0.3f" image-rendering="optimizeSpeed" preserveAspectRatio="none" xlink:href="%s" />\n', pointsx, pointsy, lx, ly, filename);
             fprintf(fid,'</g>\n');
         end
-    elseif strcmp(get(axchild(i),'Type'), 'hggroup')
+            case 'hggroup'
+%         elseif strcmp(axchildData.Type, 'hggroup')
         % handle group types (like error bars)
         % FIXME: they are not yet perfectly handled, there are more options
         % that are not used
@@ -2518,7 +2530,8 @@ for i=length(axchild):-1:1
         end
                 group=axchild2svg(fid,id,axIdString,ax,group,paperpos,axchildData.Children,axpos,groupax,projection,boundingBoxAxes);
         fprintf(fid, '</g>');
-    elseif strcmp(get(axchild(i),'Type'), 'hgtransform')
+            case 'hgtransform'
+%         elseif strcmp(axchildData.Type, 'hgtransform')
                 if strcmpi(axchildData.Visible, 'on')
             [filterString, boundingBox] = filter2svg(fid, axchild(i), boundingBoxAxes, boundingBoxAxes);
                     if strcmp(axchildData.Clipping,'on')
