@@ -3577,15 +3577,14 @@ if ~isempty(StringText)
     % included here
     %
     % This will also fix issues with git, maybe
-    if any(StringText >= 161 & StringText <= 190)
-        % This covers the common special characters
-        for ch=161:190
-            StringText=strrep(StringText, char(ch), sprintf('&#%03d;', ch));
-        end
-    end
-    if any(StringText > 191)
-        % This covers the less common special characters
-        for ch=191:255
+    stringChars = unique(StringText);
+    stringChars = stringChars(stringChars < 161);
+    if ~isempty(stringChars)
+        % Replace each of the large characters in the string.
+        % This should be optimally fast, because only the characters in the
+        % string are replaced, and each one is only attempted once
+        stringChars = reshape(stringChars, 1, []);
+        for ch=stringChars
             StringText=strrep(StringText, char(ch), sprintf('&#%03d;', ch));
         end
     end
