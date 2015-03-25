@@ -786,8 +786,10 @@ function [group, ax]=legend2svg(fid, id, ax, group, paperpos)
     [group, ax] = axes2svg(fid, id, ax, group, paperpos);
 
 function [group, ax]=annotationpane2svg(fid, id, ax, group, paperpos)
-    warning('Plot2SVG:AnnotationPaneUnsupported', 'The new AnnotationPane datatype is currenty partially supported. Some objects may not render properly!');
-    [group, ax] = axes2svg(fid, id, ax, group, paperpos);
+    if ~isempty(get(ax, 'Children'))
+        warning('Plot2SVG:AnnotationPaneUnsupported', 'The new AnnotationPane datatype is currenty partially supported. Some objects may not render properly!');
+        [group, ax] = axes2svg(fid, id, ax, group, paperpos);
+    end
     
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SUBFUNCTIONS %%%%%
