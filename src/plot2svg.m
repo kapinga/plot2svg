@@ -2883,7 +2883,7 @@ SEG_SIZE = 5000;
 if nargin < 9 || ~isscalar(strokeopacity)
     strokeopacity = 1;
 end
-if ~strcmp(style,'none')
+if ~strcmp(style,'none') && ~all(isnan(x) | isnan(y))
     pattern = lineStyle2svg(style, width);
     
     skip_pts = reshape(find(isnan(x) | isnan(y)), [],1);
