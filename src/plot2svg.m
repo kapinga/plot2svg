@@ -2902,9 +2902,14 @@ if ~strcmp(style,'none') && ~all(isnan(x) | isnan(y))
             tmp_sPts(k+2:end) = start_pts(k+1:end);
             start_pts = tmp_sPts;
             end_pts = tmp_ePts;
+        elseif (end_pts(k) <= start_pts(k))
+            start_pts(k) = -1;
+            end_pts(k) = -1;
         end
         k = k+1;
     end
+    start_pts(start_pts == -1) = [];
+    end_pts(end_pts == -1) = [];
     for j=1:numel(start_pts)
         xx=x(start_pts(j):end_pts(j));
         yy=y(start_pts(j):end_pts(j));
