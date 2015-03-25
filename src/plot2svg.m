@@ -1555,7 +1555,8 @@ if ~verLessThan('matlab', '8.4.0')
     end
 end
 for i=length(axchild):-1:1
-    if strcmp(get(axchild(i), 'Visible'), 'off')
+    axchildData = get(axchild(i));
+    if strcmp(axchildData.Visible, 'off')
         % do nothing
     elseif strcmp(get(axchild(i),'Type'),'line')
         scolorname=searchcolor(id,get(axchild(i),'Color'));
