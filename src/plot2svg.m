@@ -1559,6 +1559,13 @@ for i=length(axchild):-1:1
     if strcmp(axchildData.Visible, 'off')
         % do nothing
     else
+        if ~isfield(axchildData, 'Type')
+            axchildClass = class(axchild(i));
+            axchildClass = strsplit(axchildClass, '.');
+%             fprintf(class(axchild(i)));
+            axchildData.Type = axchildClass{end};
+%             keyboard;
+        end
         switch axchildData.Type
             case 'line'
 %         if strcmp(axchildData.Type,'line')
@@ -2517,6 +2524,10 @@ for i=length(axchild):-1:1
         % handle group types (like error bars)
         % FIXME: they are not yet perfectly handled, there are more options
         % that are not used
+                if isa(axchild(i), 'matlab.graphics.shape.internal.PointDataTip') || ...
+                        isa(axchild(i), 'matlab.graphics.primitive.Group')
+                    axchildData.Clipping = 'off';
+                end
         [filterString, boundingBox] = filter2svg(fid, axchild(i), boundingBoxAxes, boundingBoxAxes);
                 if strcmp(axchildData.Clipping,'on')
             clippingIdString = clipping2svg(fid, axchild(i), ax, paperpos, axpos, projection, axIdString);
