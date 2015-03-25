@@ -1353,6 +1353,8 @@ if strcmp(axData.Visible,'on')
             y_label_end2 = interp1([0 1],[y(edge_neighbours(x_axis_point_index(1),1)) y(edge_neighbours(edge_neighbours(x_axis_point_index(1),1),2))],label_distance,'linear','extrap');
             xg_label_end = interp1(lim,[x_label_end1 x_label_end2],axxtick);
             yg_label_end = interp1(lim,[y_label_end1 y_label_end2],axxtick);            
+            xg_label_end(isnan(xg_label_end)) = [];
+            yg_label_end(isnan(yg_label_end)) = [];
             frontTicks(fid, grouplabel, axpos, x, y, scolorname, linewidth, ...
                 axxtick, x_axis_point_index, edge_neighbours, [2 1 1], ...
                 valid_xsticks,  ticklength, tick_ratio, lim, true);
