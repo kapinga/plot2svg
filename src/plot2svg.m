@@ -3571,83 +3571,23 @@ if ~isempty(StringText)
     StringText=strrep(StringText,'>','&gt;');
     StringText=strrep(StringText,'"','&quot;');
     % Workaround for Firefox and Inkscape
-    StringText=strrep(StringText,'°','&#176;');
-    %StringText=strrep(StringText,'°','&deg;');
-    StringText=strrep(StringText,'±','&plusmn;');
-    StringText=strrep(StringText,'µ','&micro;');
-    StringText=strrep(StringText,'²','&sup2;');
-    StringText=strrep(StringText,'³','&sup3;');
-    StringText=strrep(StringText,'¼','&frac14;');
-    StringText=strrep(StringText,'½','&frac12;');
-    StringText=strrep(StringText,'¾','&frac34;');
-    StringText=strrep(StringText,'©','&copy;');
-    StringText=strrep(StringText,'®','&reg;');
-    if any(StringText > 190)
-        StringText=strrep(StringText,'¿','&#191;');
-        StringText=strrep(StringText,'À','&#192;');
-        StringText=strrep(StringText,'Á','&#193;');
-        StringText=strrep(StringText,'Â','&#194;');
-        StringText=strrep(StringText,'Ã','&#195;');
-        StringText=strrep(StringText,'Ä','&#196;');
-        StringText=strrep(StringText,'Å','&#197;');
-        StringText=strrep(StringText,'Æ','&#198;');
-        StringText=strrep(StringText,'Ç','&#199;');
-        StringText=strrep(StringText,'È','&#200;');
-        StringText=strrep(StringText,'É','&#201;');
-        StringText=strrep(StringText,'Ê','&#202;');
-        StringText=strrep(StringText,'Ë','&#203;');
-        StringText=strrep(StringText,'Ì','&#204;');
-        StringText=strrep(StringText,'Í','&#205;');
-        StringText=strrep(StringText,'Î','&#206;');
-        StringText=strrep(StringText,'Ï','&#207;');
-        StringText=strrep(StringText,'Ð','&#208;');
-        StringText=strrep(StringText,'Ñ','&#209;');
-        StringText=strrep(StringText,'Ò','&#210;');
-        StringText=strrep(StringText,'Ó','&#211;');
-        StringText=strrep(StringText,'Ô','&#212;');
-        StringText=strrep(StringText,'Õ','&#213;');
-        StringText=strrep(StringText,'Ö','&#214;');
-        StringText=strrep(StringText,'×','&#215;');
-        StringText=strrep(StringText,'Ø','&#216;');
-        StringText=strrep(StringText,'Ù','&#217;');
-        StringText=strrep(StringText,'Ú','&#218;');
-        StringText=strrep(StringText,'Û','&#219;');
-        StringText=strrep(StringText,'Ü','&#220;');
-        StringText=strrep(StringText,'Ý','&#221;');
-        StringText=strrep(StringText,'Þ','&#222;');
-        StringText=strrep(StringText,'ß','&#223;');
-        StringText=strrep(StringText,'à','&#224;');
-        StringText=strrep(StringText,'á','&#225;');
-        StringText=strrep(StringText,'â','&#226;');
-        StringText=strrep(StringText,'ã','&#227;');
-        StringText=strrep(StringText,'ä','&#228;');
-        StringText=strrep(StringText,'å','&#229;');
-        StringText=strrep(StringText,'æ','&#230;');
-        StringText=strrep(StringText,'ç','&#231;');
-        StringText=strrep(StringText,'è','&#232;');
-        StringText=strrep(StringText,'é','&#233;');
-        StringText=strrep(StringText,'ê','&#234;');
-        StringText=strrep(StringText,'ë','&#235;');
-        StringText=strrep(StringText,'ì','&#236;');
-        StringText=strrep(StringText,'í','&#237;');
-        StringText=strrep(StringText,'î','&#238;');
-        StringText=strrep(StringText,'ï','&#239;');
-        StringText=strrep(StringText,'ð','&#240;');
-        StringText=strrep(StringText,'ñ','&#241;');
-        StringText=strrep(StringText,'ò','&#242;');
-        StringText=strrep(StringText,'ó','&#243;');
-        StringText=strrep(StringText,'ô','&#244;');
-        StringText=strrep(StringText,'õ','&#245;');
-        StringText=strrep(StringText,'ö','&#246;');
-        StringText=strrep(StringText,'÷','&#247;');
-        StringText=strrep(StringText,'ø','&#248;');
-        StringText=strrep(StringText,'ù','&#249;');
-        StringText=strrep(StringText,'ú','&#250;');
-        StringText=strrep(StringText,'û','&#251;');
-        StringText=strrep(StringText,'ü','&#252;');
-        StringText=strrep(StringText,'ý','&#253;');
-        StringText=strrep(StringText,'þ','&#254;');
-        StringText=strrep(StringText,'ÿ','&#255;');
+    % This workaround applies to the fractions too.
+    % A much easier fix is just to use the &# codes for all special characters.
+    % We can also include printable special characters that have not been 
+    % included here
+    %
+    % This will also fix issues with git, maybe
+    if any(StringText >= 161 & StringText <= 190)
+        % This covers the common special characters
+        for ch=161:190
+            StringText=strrep(StringText, char(ch), sprintf('&#%03d;', ch));
+        end
+    end
+    if any(StringText > 191)
+        % This covers the less common special characters
+        for ch=191:255
+            StringText=strrep(StringText, char(ch), sprintf('&#%03d;', ch));
+        end
     end
     StringText=deblank(StringText);
 end
