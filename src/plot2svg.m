@@ -2913,9 +2913,13 @@ if ~strcmp(style,'none') && ~all(isnan(x) | isnan(y))
     for j=1:numel(start_pts)
         xx=x(start_pts(j):end_pts(j));
         yy=y(start_pts(j):end_pts(j));
-        fprintf(fid,'      <polyline fill="none" stroke="%s" stroke-width="%0.1fpt" %s stroke-opacity="%0.2f" points="', scolorname, width, pattern, strokeopacity);
-        fprintf(fid,'%0.5f,%0.5f ',[xx;yy]);
-        fprintf(fid,'"/>\n');
+        if numel(xx) > 0
+            fprintf(fid,'      <polyline fill="none" stroke="%s" stroke-width="%0.1fpt" %s stroke-opacity="%0.2f" points="', scolorname, width, pattern, strokeopacity);
+            fprintf(fid,'%0.5f,%0.5f ',[xx;yy]);
+            fprintf(fid,'"/>\n');
+        else
+            fprintf('Generated an unexpected zero point line! Press F5 to continue\n');
+        end
     end
 end
 
