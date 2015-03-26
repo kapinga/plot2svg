@@ -3578,7 +3578,7 @@ if ~isempty(StringText)
     %
     % This will also fix issues with git, maybe
     stringChars = unique(StringText);
-    stringChars = stringChars(stringChars < 161);
+    stringChars = stringChars(stringChars >= 161);
     if ~isempty(stringChars)
         % Replace each of the large characters in the string.
         % This should be optimally fast, because only the characters in the
