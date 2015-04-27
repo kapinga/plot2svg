@@ -2914,7 +2914,7 @@ if ~strcmp(style,'none') && ~all(isnan(x) | isnan(y))
         xx=x(start_pts(j):end_pts(j));
         yy=y(start_pts(j):end_pts(j));
         if numel(xx) > 0
-            fprintf(fid,'      <polyline fill="none" stroke="%s" stroke-width="%0.1fpt" %s stroke-opacity="%0.2f" points="', scolorname, width, pattern, strokeopacity);
+            fprintf(fid,'      <polyline fill="none" stroke="%s" stroke-width="%0.1fpt" %s stroke-opacity="%0.2f" style="stroke-linejoin:round;stroke-linecap:round" points="', scolorname, width, pattern, strokeopacity);
             fprintf(fid,'%0.5f,%0.5f ',[xx;yy]);
             fprintf(fid,'"/>\n');
         else
