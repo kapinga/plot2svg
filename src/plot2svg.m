@@ -2403,10 +2403,19 @@ for i=length(axchild):-1:1
                 fprintf(fid,'</g>\n');
             case {'text', 'textboxshape'}
 %         elseif strcmp(axchildData.Type,'text') || strcmp(axchildData.Type, 'textboxshape')
+                if ~verLessThan('matlab', '8.4.0') && ~strcmp(axchild(i).Units, 'normalized')
+                    unitsOrig = axchild(i).Units;
+                    axchild(i).Units = 'normalized';
+                else
+                    unitsOrig = [];
+                end
                 axchildData = get(axchild(i));
                 if isgraphics(axchild(i), 'textboxshape')
                     axchildData.Extent = axchildData.Position;
                     axchildData.Clipping = 'off';
+                end
+                if ~isempty(unitsOrig)
+                    set(axchild(i), 'Units', unitsOrig);
                 end
                 if PLOT2SVG_globals.octave
                     extent = [0 0 0 0];
@@ -2869,7 +2878,7 @@ function patternString = lineStyle2svg(lineStyle, lineWidth)
 %       We will try to match with the screen format.
 scaling = max(1, lineWidth * 0.4);
 switch lineStyle
-    case '--', patternString = sprintf('stroke-dasharray="%0.1f,%0.1f"', 8*scaling, 2*scaling);
+    case '--', patternString = sprintf('stroke-dasharray="%0.1f,%0.1f"', 8*scaling, 8*scaling);
     case ':', patternString = sprintf('stroke-dasharray="%0.1f,%0.1f"', 2*scaling, 2*scaling);
     case '-.', patternString = sprintf('stroke-dasharray="%0.1f,%0.1f,%0.1f,%0.1f"', 8*scaling, 2*scaling, 2*scaling, 2*scaling);
     otherwise, patternString = 'stroke-dasharray="none"';   
@@ -2997,6 +3006,14 @@ end
 idData = get(id);
 originalTextUnits=idData.Units;
 originalTextPosition = idData.Position;
+if PLOT2SVG_globals.octave
+	set(id,'Units','data');
+elseif isgraphics(id, 'textboxshape')
+    set(id, 'Units', 'normalized');
+else
+	set(id,'Units','Data');
+end
+idData = get(id);
 if isgraphics(id, 'textboxshape')
     idData.Rotation = 0;
     switch idData.HorizontalAlignment
@@ -3011,13 +3028,6 @@ if isgraphics(id, 'textboxshape')
         case 'top'
             idData.Position(2) = idData.Position(2) + idData.Position(4);
     end 
-end
-if PLOT2SVG_globals.octave
-	set(id,'Units','data');
-elseif isgraphics(id, 'textboxshape')
-    set(id, 'Units', 'normalized');
-else
-	set(id,'Units','Data');
 end
 textpos=idData.Position;
 if PLOT2SVG_globals.octave
