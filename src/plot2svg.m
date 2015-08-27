@@ -126,6 +126,10 @@ function varargout = plot2svg(param1,id,pixelfiletype)
 %               (rather than in groups surrounding it). Super- and
 %               sub-scripts are now generated using SVG standard values for
 %               baseline-shift and font-size percentages
+%  19-02-2015 - Support for MATLAB 2014b grids added (Grids can have custom
+%               opacity and colors). line2svg now supports opacity,
+%               although MATLAB does not allow ordinary line objects to
+%               have an alpha value, as far as I know
 
 % Supress warnings about variables growing on every iteration
 %#ok<*AGROW>
