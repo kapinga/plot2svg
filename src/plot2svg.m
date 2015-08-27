@@ -130,6 +130,15 @@ function varargout = plot2svg(param1,id,pixelfiletype)
 %               opacity and colors). line2svg now supports opacity,
 %               although MATLAB does not allow ordinary line objects to
 %               have an alpha value, as far as I know
+%  19-02-2015 - Update for MATLAB 2015b: use axes OuterPosition for axes
+%               placement
+%  19-02-2015 - Properly calculate the axes limits when the user has
+%               specified infinite limits
+%  19-02-2015 - Added bug fix for when ticks are specified outside the plot
+%               window
+%  19-02-2015 - Bug fix for log scale minor ticks not showing above the
+%               largest power of 10. Inspired by Valentin, but used a
+%               simpler solution
 
 % Supress warnings about variables growing on every iteration
 %#ok<*AGROW>
@@ -3167,6 +3176,7 @@ if strcmp(axData.YTickLabelMode,'auto') && strcmp(axData.YScale,'linear')
     numlabels = numlabels(:);
     labelpos = labelpos(:);
     indexnz = find(labelpos ~= 0);
+    indexnz(indexnz > numel(numlabels)) = [];
     if (~isempty(indexnz) && ~isempty(numlabels))
         ratio = numlabels(indexnz)./labelpos(indexnz);
         if round(log10(ratio(1))) ~= 0 && ratio(1) ~= 0
@@ -3200,6 +3210,7 @@ if strcmp(axData.ZTickLabelMode,'auto') && strcmp(axData.ZScale,'linear')
     numlabels = numlabels(:);
     labelpos = labelpos(:);
     indexnz = find(labelpos ~= 0);
+    indexnz(indexnz > numel(numlabels)) = [];
     if (~isempty(indexnz) && ~isempty(numlabels))
         ratio = numlabels(indexnz)./labelpos(indexnz);
         if round(log10(ratio(1))) ~= 0 && ratio(1) ~= 0
@@ -3841,86 +3852,47 @@ fva = reshape(a, [am*an ap]);
 f = [q q+m q+m+1 q+1];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Code by JRH to detect axes child limits
+% Code by Jonathon Harding to detect axes child limits
 function [xlims, ylims, zlims] = AxesChildBounds(ax)
+    % Get all the direct children of the axes that are not also axes (i.e.
+    % old style legends)
     children = findobj(ax, '-depth', 1, '-not', 'Type', 'axes');
+    % Now get all children of those objects that have data we can analyze
     dataObjs = findobj(children, 'Type', 'image', '-or', 'Type', 'line', ...
         '-or', 'Type', 'patch', '-or', 'Type', 'Rectangle', '-or', 'Type', 'Surface');
-%     dataObjs = findobj(children, 'Type', 'line');
+    % Generate default limits if no objects are found
     xlims = [0 1];
     ylims = [0 1];
     zlims = [0 1];
     if numel(dataObjs) == 0
         return;
     end
-    if numel(dataObjs) == 1
-        val = get(dataObjs, 'XData');
-    else
-%         x = cell2mat(get(dataObjs, 'XData')');
-        val = zeros(numel(dataObjs), 2);
-        for i=1:numel(dataObjs)
-            data = get(dataObjs(i), 'XData');
+    % Iterate through each axis one at a time
+    axisData = {'XData', 'YData', 'ZData'};
+    for i=1:numel(axisData)
+        % Set extreme bounds that will always be overridden
+        lims = [inf -inf];
+        for j=1:numel(dataObjs)
+            % For each object, get the data for the appropriate axis
+            data = reshape(get(dataObjs(j), axisData{i}), [], 1);
+            % Remove data that is not displayed
+            data(isinf(data) | isnan(data)) = [];
+            % If any data remains, update the limits
             if ~isempty(data)
-                val(i,1) = min(reshape(data, 1, []));
-                val(i,2) = max(reshape(data, 1, []));
-            else
-                val(i,:) = [-inf, inf];
+                lims(1) = min(lims(1), min(data));
+                lims(2) = max(lims(2), max(data));
+            end
+        end
+        % If the limits are not infinite (i.e. no data found), then update
+        % the apropriate axis limits
+        if ~any(isinf(lims))
+            switch axisData{i}
+                case 'XData'
+                    xlims = lims;
+                case 'YData'
+                    ylims = lims;
+                case 'ZData'
+                    zlims = lims;
             end
         end
     end
-    if ~isempty(val)
-        val = val(~isinf(val));
-        if ~isempty(val)
-            xlims(1) = min(val);
-            xlims(2) = max(val);
-        end
-    end
-    clear val
-    
-    if numel(dataObjs) == 1
-        val = get(dataObjs, 'YData');
-    else
-%         x = cell2mat(get(dataObjs, 'YData')');
-        val = zeros(numel(dataObjs), 2);
-        for i=1:numel(dataObjs)
-            data = get(dataObjs(i), 'YData');
-            if ~isempty(data)
-                val(i,1) = min(reshape(data, 1, []));
-                val(i,2) = max(reshape(data, 1, []));
-            else
-                val(i,:) = [-inf, inf];
-            end
-        end
-    end
-    if ~isempty(val)
-        val = val(~isinf(val));
-        if ~isempty(val)
-            ylims(1) = min(val);
-            ylims(2) = max(val);
-        end
-    end
-    clear val
-
-    if numel(dataObjs) == 1
-        val = get(dataObjs, 'ZData');
-    else
-%         x = cell2mat(get(dataObjs, 'ZData')');
-        val = zeros(numel(dataObjs), 2);
-        for i=1:numel(dataObjs)
-            data = get(dataObjs(i), 'ZData');
-            if ~isempty(data)
-                val(i,1) = min(reshape(data, 1, []));
-                val(i,2) = max(reshape(data, 1, []));
-            else
-                val(i,:) = [-inf, inf];
-            end
-        end
-    end
-    if ~isempty(val)
-        val = val(~isinf(val));
-        if ~isempty(val)
-            zlims(1) = min(val);
-            zlims(2) = max(val);
-        end
-    end
-    clear val
