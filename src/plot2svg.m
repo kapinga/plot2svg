@@ -115,6 +115,17 @@ function varargout = plot2svg(param1,id,pixelfiletype)
 %               are not necessary for MATLAB
 %  18-02-2015 - Added MException catching to try/catch blocks and the
 %               assocciated warning messages
+%  19-02-2015 - Updated line2svg to never create line segments longer than
+%               5000 points, even if the data includes some NaN elements
+%  19-02-2015 - convertunit now properly converts between MATLAB pixels
+%               (which are variable) and SVG pixels (fixed at 90 ppi) in
+%               all cases. Text will be appropriately sized when MATLAB is
+%               run in High-DPI mode
+%  19-02-2015 - Updated text rendering code. Translation and rotation are
+%               now applied in a single step, directly to the text object
+%               (rather than in groups surrounding it). Super- and
+%               sub-scripts are now generated using SVG standard values for
+%               baseline-shift and font-size percentages
 
 % Supress warnings about variables growing on every iteration
 %#ok<*AGROW>
@@ -3421,7 +3432,7 @@ if ~isempty(StringText)
                 % match all special cases.
                 returnvalue = strrep(returnvalue, '></tspan><tspan>', '>');
             else
-                returnvalue = ['<tspan>' StringText '</tspan>'];    
+                returnvalue = ['<tspan>' StringText '</tspan>'];
             end
         else
             returnvalue = '<tspan>';
