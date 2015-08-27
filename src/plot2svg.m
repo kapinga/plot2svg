@@ -109,7 +109,6 @@ function varargout = plot2svg(param1,id,pixelfiletype)
 %  18-07-2013 - Small fix to exclude change log from help
 %               (thanks to Stuart Layton)
 %  30-11-2014 - Preliminary partial support for contour objects
-
 % Edits made by Jonathon Harding
 %  18-02-2015 - Removed calls to `find` inside variable indexes, as these
 %               are not necessary for MATLAB
@@ -139,12 +138,19 @@ function varargout = plot2svg(param1,id,pixelfiletype)
 %  19-02-2015 - Bug fix for log scale minor ticks not showing above the
 %               largest power of 10. Inspired by Valentin, but used a
 %               simpler solution
+% Edits made by Juerg Schwizer
+%  14-05-2015 - Reworked fix for ticks specified outside the plot window
+%             - Added css property image-rendering: pixelated;
+%             - Removed type 'image' from AxesChildBounds() as it triggers
+%               an error under Matlab 2010.
+
+
 
 % Supress warnings about variables growing on every iteration
 %#ok<*AGROW>
 global PLOT2SVG_globals
 global colorname
-progversion='18-Feb-2015'; %#ok<NASGU>
+progversion='14-May-2015'; %#ok<NASGU>
 PLOT2SVG_globals.runningIdNumber = 0;
 PLOT2SVG_globals.octave = false;
 PLOT2SVG_globals.checkUserData = true;
@@ -3142,9 +3148,12 @@ if strcmp(axData.XTickLabelMode,'auto') && strcmp(axData.XScale,'linear')
     numlabels = numlabels(:);
     labelpos = labelpos(:);
     indexnz = find(labelpos ~= 0);
-    indexnz(indexnz > numel(numlabels)) = [];
     if (~isempty(indexnz) && ~isempty(numlabels))
-        ratio=numlabels(indexnz)./labelpos(indexnz);
+        if (length(indexnz) == length(numlabels) && max(indexnz) <= length(numlabels))
+            ratio = numlabels(indexnz)./labelpos(indexnz);
+        else
+            ratio = 1;
+        end
         if round(log10(ratio(1))) ~= 0 && ratio(1) ~= 0
             exptext = sprintf('&#215; 10<tspan style="font-size:65%%;baseline-shift:super">%g</tspan>', -log10(ratio(1)));
             label2svg(fid,group,axpos,ax,(axpos(1)+axpos(3))*paperpos(3),(1-axpos(2))*paperpos(4)+3*fontsize,exptext,'right',0,'top',1,paperpos,font_color,0)           
@@ -3176,9 +3185,12 @@ if strcmp(axData.YTickLabelMode,'auto') && strcmp(axData.YScale,'linear')
     numlabels = numlabels(:);
     labelpos = labelpos(:);
     indexnz = find(labelpos ~= 0);
-    indexnz(indexnz > numel(numlabels)) = [];
     if (~isempty(indexnz) && ~isempty(numlabels))
-        ratio = numlabels(indexnz)./labelpos(indexnz);
+        if (length(indexnz) == length(numlabels) && max(indexnz) <= length(numlabels))
+            ratio = numlabels(indexnz)./labelpos(indexnz);
+        else
+            ratio = 1;
+        end	
         if round(log10(ratio(1))) ~= 0 && ratio(1) ~= 0
             exptext = sprintf('&#215; 10<tspan style="font-size:65%%;baseline-shift:super">%g</tspan>', -log10(ratio(1)));
             label2svg(fid,group,axpos,ax,axpos(1)*paperpos(3),(1-(axpos(2)+axpos(4)))*paperpos(4)-0.5*fontsize,exptext,'left',0,'bottom',1,paperpos,font_color,0)           
@@ -3210,9 +3222,12 @@ if strcmp(axData.ZTickLabelMode,'auto') && strcmp(axData.ZScale,'linear')
     numlabels = numlabels(:);
     labelpos = labelpos(:);
     indexnz = find(labelpos ~= 0);
-    indexnz(indexnz > numel(numlabels)) = [];
     if (~isempty(indexnz) && ~isempty(numlabels))
-        ratio = numlabels(indexnz)./labelpos(indexnz);
+        if (length(indexnz) == length(numlabels) && max(indexnz) <= length(numlabels))
+            ratio = numlabels(indexnz)./labelpos(indexnz);
+        else
+            ratio = 1;
+        end
         if round(log10(ratio(1))) ~= 0 && ratio(1) ~= 0
             exptext = sprintf('&#215; 10<tspan style="font-size:65%%;baseline-shift:super">%g</tspan>', -log10(ratio(1)));
             label2svg(fid,group,axpos,ax,axpos(1)*paperpos(3),(1-(axpos(2)+axpos(4)))*paperpos(4)-0.5*fontsize,exptext,'left',0,'top',1,paperpos,font_color,0)           
@@ -3858,7 +3873,7 @@ function [xlims, ylims, zlims] = AxesChildBounds(ax)
     % old style legends)
     children = findobj(ax, '-depth', 1, '-not', 'Type', 'axes');
     % Now get all children of those objects that have data we can analyze
-    dataObjs = findobj(children, 'Type', 'image', '-or', 'Type', 'line', ...
+    dataObjs = findobj(children, 'Type', 'line', ...
         '-or', 'Type', 'patch', '-or', 'Type', 'Rectangle', '-or', 'Type', 'Surface');
     % Generate default limits if no objects are found
     xlims = [0 1];
